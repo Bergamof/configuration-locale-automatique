@@ -1,6 +1,6 @@
 ---
 # Ce rôle ne s'applique qu'aux distributions Arch (dont Manjaro).
-# Les rôles appelants doivent donc le conditionner sur ansible_os_family.
+# Les rôles appelants doivent donc le conditionner sur ansible_facts['os_family'].
 
 - name: Installer les outils de compilation nécessaires à l'AUR
   become: true

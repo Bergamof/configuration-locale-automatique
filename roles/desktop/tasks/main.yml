@@ -1,15 +1,15 @@
 ---
 - name: Charger les variables propres à la distribution
-  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
 
 - name: Vérifier que les applications demandées sont connues pour cette distribution
   ansible.builtin.assert:
     that:
       - desktop_apps | difference(desktop_app_packages.keys() | list) | length == 0
     fail_msg: >-
-      Applications sans paquet défini pour {{ ansible_os_family }} :
+      Applications sans paquet défini pour {{ ansible_facts['os_family'] }} :
       {{ desktop_apps | difference(desktop_app_packages.keys() | list) | join(', ') }}.
-      Compléter roles/desktop/vars/{{ ansible_os_family }}.yml.
+      Compléter roles/desktop/vars/{{ ansible_facts['os_family'] }}.yml.
     quiet: true
 
 - name: Installer les applications graphiques
@@ -38,5 +38,5 @@
   vars:
     aur_packages: "{{ desktop_aur_apps }}"
   when:
-    - ansible_os_family == 'Archlinux'
+    - ansible_facts['os_family'] == 'Archlinux'
     - desktop_aur_apps | length > 0

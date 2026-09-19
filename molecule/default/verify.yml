@@ -11,7 +11,7 @@
     - ../../roles/shell/defaults/main.yml
 
   vars:
-    verify_home: "{{ ansible_env.HOME }}"
+    verify_home: "{{ ansible_facts['env'].HOME }}"
 
   tasks:
     - name: Relever l'état des fichiers attendus
@@ -114,7 +114,7 @@
 
     - name: Vérifier le shell de connexion de l'utilisateur
       ansible.builtin.command:
-        cmd: "getent passwd {{ ansible_user_id }}"
+        cmd: "getent passwd {{ ansible_facts['user_id'] }}"
       register: verify_login_shell
       changed_when: false
 

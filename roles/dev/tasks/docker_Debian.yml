@@ -30,12 +30,12 @@
   ansible.builtin.apt_repository:
     repo: >-
       deb [arch={{ dev_docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc]
-      https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      https://download.docker.com/linux/ubuntu {{ ansible_facts['distribution_release'] }} stable
     filename: docker
     state: present
     update_cache: true
   vars:
-    dev_docker_apt_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+    dev_docker_apt_arch: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}"
 
 - name: Installer Docker Engine et le plugin compose
   become: true

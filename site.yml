@@ -22,10 +22,10 @@
     - name: Vérifier que la distribution est prise en charge
       ansible.builtin.assert:
         that:
-          - ansible_os_family in supported_os_families
+          - ansible_facts['os_family'] in supported_os_families
         fail_msg: >-
-          Distribution non prise en charge : {{ ansible_distribution }}
-          (famille {{ ansible_os_family }}). Familles supportées :
+          Distribution non prise en charge : {{ ansible_facts['distribution'] }}
+          (famille {{ ansible_facts['os_family'] }}). Familles supportées :
           {{ supported_os_families | join(', ') }}.
         quiet: true
       vars:
@@ -37,7 +37,7 @@
     - name: Vérifier que le playbook n'est pas exécuté en root
       ansible.builtin.assert:
         that:
-          - ansible_user_id != 'root'
+          - ansible_facts['user_id'] != 'root'
         fail_msg: >-
           Le playbook configure le compte utilisateur courant et doit être
           lancé sans sudo. Les tâches système escaladent d'elles-mêmes.
@@ -47,8 +47,8 @@
     - name: Afficher le plan d'exécution
       ansible.builtin.debug:
         msg: >-
-          Profil « {{ workstation_profile }} » sur {{ ansible_distribution }}
-          {{ ansible_distribution_version }} — rôles :
+          Profil « {{ workstation_profile }} » sur {{ ansible_facts['distribution'] }}
+          {{ ansible_facts['distribution_version'] }} — rôles :
           {{ workstation_roles | join(', ') }}
       tags: [always]
 

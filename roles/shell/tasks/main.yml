@@ -1,13 +1,13 @@
 ---
 - name: Charger les variables propres à la distribution
-  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
 
 - name: Vérifier que le shell demandé est pris en charge
   ansible.builtin.assert:
     that:
       - shell_default in shell_packages
     fail_msg: >-
-      Shell « {{ shell_default }} » inconnu pour {{ ansible_os_family }}.
+      Shell « {{ shell_default }} » inconnu pour {{ ansible_facts['os_family'] }}.
       Valeurs possibles : {{ shell_packages.keys() | join(', ') }}.
     quiet: true
 

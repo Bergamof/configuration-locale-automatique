@@ -230,6 +230,22 @@ select_profile() {
 
 # --- Exécution ---------------------------------------------------------------
 
+# Indique si Ansible devra demander le mot de passe sudo.
+#
+# `sudo -n true` ne convient pas : l'installation des prérequis, juste avant,
+# a pu laisser un jeton sudo valide dans ce terminal, et le test réussit
+# alors à tort. Ansible escalade depuis un contexte sans terminal, où ce
+# jeton ne s'applique pas (tty_tickets, activé par défaut), et le playbook
+# échoue en cours de route sur « sudo: il est nécessaire de saisir un mot de
+# passe ».
+#
+# On cherche donc une règle NOPASSWD couvrant toutes les commandes. Dans le
+# doute, on demande le mot de passe : le fournir inutilement est sans effet,
+# l'oublier interrompt la configuration.
+sudo_requires_password() {
+  ! sudo -n -l 2>/dev/null | grep -qE 'NOPASSWD:[[:space:]]*ALL'
+}
+
 # Construit et lance la commande ansible-playbook.
 run_playbook() {
   local -a command=(ansible-playbook "${PLAYBOOK}" --extra-vars "workstation_profile=${PROFILE}")
@@ -250,8 +266,8 @@ run_playbook() {
     command+=("${VERBOSE}")
   fi
 
-  # Mot de passe sudo, sauf si l'utilisateur en est dispensé.
-  if ! sudo -n true 2>/dev/null; then
+  # Mot de passe sudo, sauf si l'utilisateur en est réellement dispensé.
+  if sudo_requires_password; then
     command+=(--ask-become-pass)
   fi
 
@@ -277,8 +293,13 @@ confirm() {
   fi
 
   local answer
-  read -r -p "Appliquer le profil « ${PROFILE} » sur ${OS_NAME} ? [o/N] " answer
-  [[ "${answer}" =~ ^[oOyY]$ ]] || die "Abandon à la demande de l'utilisateur."
+  read -r -p "Appliquer le profil « ${PROFILE} » sur ${OS_NAME} ? [O/n] " answer
+
+  # Réponse vide = oui : c'est le cas courant, l'utilisateur vient de
+  # choisir son profil.
+  if [[ -n "${answer}" && ! "${answer}" =~ ^[oOyY]$ ]]; then
+    die "Abandon à la demande de l'utilisateur."
+  fi
 }
 
 parse_arguments() {

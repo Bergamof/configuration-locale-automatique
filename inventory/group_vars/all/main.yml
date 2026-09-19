@@ -12,8 +12,8 @@ workstation_roles: "{{ common_roles | union(profile_roles) }}"
 
 # Compte utilisateur configuré : celui qui lance le playbook. bootstrap.sh
 # refuse de s'exécuter en root, les tâches système escaladent via `become`.
-workstation_user: "{{ ansible_user_id }}"
-workstation_home: "{{ ansible_env.HOME }}"
+workstation_user: "{{ ansible_facts['user_id'] }}"
+workstation_home: "{{ ansible_facts['env'].HOME }}"
 
 # Localisation du poste.
 workstation_timezone: Europe/Paris

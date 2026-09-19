@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (tests Molecule ; une PR par session)
+> Dernière mise à jour : 2026-09-19 (retours du premier test sur Manjaro)
 
 ## 1. Objet du projet
 
@@ -107,6 +107,12 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
   (traductions de paquets par distribution).
 - Idempotence obligatoire : pas de `command`/`shell` sans `creates` ou
   `changed_when`.
+- **Toujours `ansible_facts['os_family']`, jamais `ansible_os_family`** :
+  `inject_facts_as_vars = false` dans `ansible.cfg`, donc un fait de haut
+  niveau est indéfini et échoue immédiatement. Les variables de connexion
+  (`ansible_user`, `ansible_connection`, `ansible_python_interpreter`),
+  les variables magiques (`ansible_playbook_python`) et `ansible_managed`
+  ne sont pas des faits et restent inchangées.
 - `ansible-lint` doit passer en **profil `production`** (aucune exception
   dans `skip_list`).
 
@@ -230,6 +236,20 @@ Limites connues du scénario :
 - Le job CI qui lance `ansible-lint` doit installer **aussi** les
   collections de test : le linter analyse `molecule/` et échoue sinon sur
   `couldn't resolve module/action 'community.docker.docker_container'`.
+- `INJECT_FACTS_AS_VARS` : ansible-core ≥ 2.21 émet un avertissement de
+  dépréciation **à chaque tâche** tant que des faits de haut niveau sont
+  utilisés (comportement supprimé en 2.24). Corrigé par le passage à
+  `ansible_facts['...']` + `inject_facts_as_vars = false`. Une version
+  ancienne du contrôleur ne montre rien : reproduire avec la version des
+  distributions cibles (Manjaro fournit 2.21, un venv Python 3.11 plafonne
+  à 2.19).
+- `sudo -n true` **ne dit pas** si Ansible pourra escalader : l'installation
+  des prérequis laisse un jeton sudo valide dans le terminal, le test
+  réussit à tort, puis le playbook échoue sur « sudo: il est nécessaire de
+  saisir un mot de passe » — Ansible escalade sans terminal, où ce jeton ne
+  s'applique pas (`tty_tickets`). `bootstrap.sh` cherche donc une règle
+  `NOPASSWD: ALL` via `sudo -n -l`, et demande le mot de passe dans le
+  doute (le fournir inutilement est sans effet).
 - Deux `# noqa` justifiés dans `molecule/default/verify.yml`
   (`command-instead-of-module` pour lire la config git effective,
   `command-instead-of-shell` pour `command -v`). Préférer un `noqa` ciblé

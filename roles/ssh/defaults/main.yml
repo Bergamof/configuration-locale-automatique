@@ -4,7 +4,7 @@
 ssh_generate_key: true
 ssh_key_type: ed25519
 ssh_key_path: "{{ workstation_home }}/.ssh/id_{{ ssh_key_type }}"
-ssh_key_comment: "{{ workstation_user }}@{{ ansible_hostname }} ({{ workstation_profile }})"
+ssh_key_comment: "{{ workstation_user }}@{{ ansible_facts['hostname'] }} ({{ workstation_profile }})"
 
 # Options appliquées à toutes les connexions (bloc Host *).
 ssh_default_options:
