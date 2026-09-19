@@ -1,0 +1,7 @@
+---
+# Assistant AUR installé et utilisé pour les paquets hors dépôts officiels.
+aur_helper: paru
+
+# Paquets AUR à installer. Les rôles appelants passent leur propre liste
+# via include_role + vars, cette valeur reste le repli.
+aur_packages: []

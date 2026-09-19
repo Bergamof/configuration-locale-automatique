@@ -1,0 +1,9 @@
+; {{ ansible_managed }}
+; Identité appliquée aux dépôts situés sous {{ git_work_directory }}/.
+
+[user]
+	name = {{ workstation_full_name }}
+	email = {{ workstation_email }}
+{% if git_sign_commits and git_signing_key | length > 0 %}
+	signingkey = {{ git_signing_key }}
+{% endif %}

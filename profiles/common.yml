@@ -1,0 +1,10 @@
+---
+# Tronc commun : rôles joués quel que soit le profil choisi.
+common_roles:
+  - base
+  - shell
+  - git
+  - ssh
+
+# Paquets ajoutés au socle sur tous les postes, quel que soit le profil.
+base_extra_packages: []

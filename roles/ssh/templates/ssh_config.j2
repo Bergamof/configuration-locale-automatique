@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+# Profil « {{ workstation_profile }} » — regénéré par le rôle ssh.
+
+{% for host in ssh_hosts %}
+Host {{ host.name }}
+    HostName {{ host.hostname }}
+{% if host.user is defined %}
+    User {{ host.user }}
+{% endif %}
+{% if host.port is defined %}
+    Port {{ host.port }}
+{% endif %}
+{% if host.identity_file is defined %}
+    IdentityFile {{ host.identity_file }}
+    IdentitiesOnly yes
+{% endif %}
+{% for option, value in (host.options | default({})) | dictsort %}
+    {{ option }} {{ value }}
+{% endfor %}
+
+{% endfor %}
+Host *
+{% for option, value in ssh_default_options | dictsort %}
+    {{ option }} {{ value }}
+{% endfor %}
+{% if ssh_generate_key %}
+    IdentityFile {{ ssh_key_path }}
+{% endif %}

@@ -1,0 +1,24 @@
+---
+# Ce rôle ne s'applique qu'aux distributions Arch (dont Manjaro).
+# Les rôles appelants doivent donc le conditionner sur ansible_facts['os_family'].
+
+- name: Installer les outils de compilation nécessaires à l'AUR
+  become: true
+  community.general.pacman:
+    name:
+      - base-devel
+      - git
+    state: present
+
+- name: Installer l'assistant AUR {{ aur_helper }}
+  kewlfft.aur.aur:
+    name: "{{ aur_helper }}"
+    use: makepkg
+    state: present
+
+- name: Installer les paquets AUR demandés
+  kewlfft.aur.aur:
+    name: "{{ aur_packages }}"
+    use: "{{ aur_helper }}"
+    state: present
+  when: aur_packages | length > 0

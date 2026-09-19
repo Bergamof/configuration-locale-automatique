@@ -1,0 +1,44 @@
+---
+- name: Installer les dépendances du dépôt Docker
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+
+- name: Créer le répertoire des clés de dépôt
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Télécharger la clé de signature du dépôt Docker
+  become: true
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Déclarer le dépôt Docker
+  become: true
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ dev_docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/ubuntu {{ ansible_facts['distribution_release'] }} stable
+    filename: docker
+    state: present
+    update_cache: true
+  vars:
+    dev_docker_apt_arch: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}"
+
+- name: Installer Docker Engine et le plugin compose
+  become: true
+  ansible.builtin.apt:
+    name: "{{ dev_docker_packages }}"
+    state: present

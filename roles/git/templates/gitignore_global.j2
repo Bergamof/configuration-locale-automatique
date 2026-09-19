@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+# Motifs ignorés dans tous les dépôts — regénéré par le rôle git.
+
+{% for pattern in git_global_ignore %}
+{{ pattern }}
+{% endfor %}

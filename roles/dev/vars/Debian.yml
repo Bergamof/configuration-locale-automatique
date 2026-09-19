@@ -1,0 +1,27 @@
+---
+dev_language_packages:
+  python:
+    - python3
+    - python3-pip
+    - python3-venv
+  node:
+    - nodejs
+    - npm
+  java:
+    - default-jdk
+  go:
+    - golang-go
+  rust:
+    - rustc
+    - cargo
+
+dev_build_packages:
+  - build-essential
+  - pkg-config
+
+dev_docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin

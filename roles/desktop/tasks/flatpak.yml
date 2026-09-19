@@ -1,0 +1,22 @@
+---
+- name: Installer Flatpak
+  become: true
+  ansible.builtin.package:
+    name: "{{ desktop_flatpak_package }}"
+    state: present
+
+- name: Déclarer le dépôt Flathub
+  become: true
+  community.general.flatpak_remote:
+    name: flathub
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    method: system
+    state: present
+
+- name: Installer les applications Flatpak demandées
+  become: true
+  community.general.flatpak:
+    name: "{{ desktop_flatpak_apps }}"
+    remote: flathub
+    method: system
+    state: present

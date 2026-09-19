@@ -1,0 +1,26 @@
+---
+# Profil « perso » : poste personnel, orienté bureautique et multimédia.
+profile_roles:
+  - desktop
+  - dev
+
+workstation_full_name: "Adrien Bouchardon"
+workstation_email: "{{ vault_perso_email | default('adrien.bouchardon@gmail.com') }}"
+
+# Applications graphiques du poste perso.
+desktop_apps:
+  - firefox
+  - vlc
+  - keepassxc
+
+desktop_flatpak_apps:
+  - com.spotify.Client
+
+# Outils de développement : l'essentiel, sans l'outillage d'entreprise.
+dev_languages:
+  - python
+  - node
+dev_install_docker: false
+
+# Signature des commits : facultative sur le poste perso.
+git_sign_commits: false

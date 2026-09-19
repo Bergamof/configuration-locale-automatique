@@ -1,0 +1,22 @@
+---
+# Langages et écosystèmes installés. Identifiants logiques résolus en
+# paquets dans vars/<famille>.yml.
+dev_languages:
+  - python
+
+# Outillage de compilation (make, compilateur C, en-têtes).
+dev_install_build_tools: true
+
+# Docker Engine + plugin compose.
+dev_install_docker: false
+
+# Ajoute l'utilisateur au groupe docker (évite sudo pour chaque commande).
+# Équivaut à un accès root sur la machine : à désactiver si le poste
+# est soumis à une politique de sécurité stricte.
+dev_docker_group_member: true
+
+# Paquets de développement supplémentaires, alimentés par un profil.
+dev_extra_packages: []
+
+# Paquets AUR supplémentaires (Arch/Manjaro uniquement).
+dev_aur_packages: []

@@ -1,0 +1,68 @@
+---
+# Scénario par défaut : joue le tronc commun (base, shell, git, ssh) sur
+# Ubuntu et Arch, puis vérifie le résultat et l'idempotence.
+#
+# Les rôles `dev` et `desktop` sont écartés : Docker dans Docker, Flatpak
+# et les applications graphiques ne sont pas testables en conteneur.
+
+driver:
+  name: default
+  options:
+    managed: true
+
+platforms:
+  - name: molecule-ubuntu
+    image: ubuntu:24.04
+    groups:
+      - workstation
+    # Amorçage minimal : sans Python, Ansible ne peut pas se connecter.
+    # cryptography est requis par community.crypto (génération de clé SSH),
+    # locales et tzdata par le rôle base.
+    bootstrap_command: >-
+      apt-get update -qq
+      && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq
+      python3 python3-cryptography sudo locales tzdata ca-certificates
+
+  - name: molecule-archlinux
+    image: archlinux:base
+    groups:
+      - workstation
+    # L'image Arch exclut /usr/share/i18n (directive NoExtract) : sans les
+    # définitions de locales, locale-gen ne peut rien générer, ce qu'un vrai
+    # Manjaro n'a pas. On réinstalle donc glibc sans cette exclusion pour
+    # obtenir un système représentatif.
+    # `-Syu` et non `-Sy` : l'amorçage ne doit pas laisser le conteneur en
+    # état de mise à jour partielle, que le rôle base aurait à réparer.
+    bootstrap_command: >-
+      sed -i '/^NoExtract/d' /etc/pacman.conf
+      && pacman -Syu --noconfirm glibc
+      && pacman -S --noconfirm --needed python python-cryptography sudo
+
+provisioner:
+  name: ansible
+  options:
+    # Le tronc commun suffit à valider la mécanique ; les rôles nécessitant
+    # un vrai poste sont écartés.
+    skip-tags: dev,desktop
+  inventory:
+    # `links` est exclusif : quand il est présent, Molecule n'écrit plus les
+    # group_vars/host_vars déclarés en ligne. Tout passe donc par des
+    # fichiers versionnés, liés dans l'inventaire éphémère.
+    links:
+      # Les variables communes du projet doivent être visibles depuis
+      # l'inventaire de Molecule.
+      group_vars: ../../inventory/group_vars
+      # Connexion Docker, utilisateur de test et profil appliqué.
+      host_vars: host_vars
+
+scenario:
+  # `dependency` installe collections.yml : l'omettre laisse le scénario
+  # sans community.docker, et `molecule test` échoue dès le premier destroy.
+  test_sequence:
+    - dependency
+    - destroy
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy

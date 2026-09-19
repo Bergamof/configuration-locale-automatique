@@ -1,0 +1,5 @@
+---
+# Rejoue le playbook réel du projet : c'est bien site.yml qui est testé,
+# pas une copie adaptée aux conteneurs.
+- name: Appliquer la configuration du poste
+  ansible.builtin.import_playbook: ../../site.yml

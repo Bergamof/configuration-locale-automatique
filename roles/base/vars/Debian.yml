@@ -1,0 +1,23 @@
+---
+# Correspondance identifiant logique -> nom de paquet Debian/Ubuntu.
+base_package_names:
+  curl: curl
+  wget: wget
+  unzip: unzip
+  tree: tree
+  htop: htop
+  jq: jq
+  ripgrep: ripgrep
+  fd: fd-find
+  bat: bat
+  vim: vim
+
+# Paquets indispensables au fonctionnement du playbook lui-même.
+base_system_packages:
+  - ca-certificates
+  - gnupg
+  - locales
+  - software-properties-common
+
+# Fichier définissant la locale système par défaut.
+base_locale_conf_path: /etc/default/locale

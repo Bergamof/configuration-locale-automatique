@@ -1,0 +1,9 @@
+---
+# Collections nécessaires aux tests uniquement. Molecule les installe
+# automatiquement à l'étape « dependency » : il attend ce nom de fichier
+# pour les collections (requirements.yml n'y sert qu'aux rôles).
+# Les collections requises par le poste lui-même sont déclarées dans le
+# requirements.yml à la racine du projet.
+collections:
+  - name: community.docker
+    version: ">=3.10.2"

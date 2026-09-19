@@ -1,0 +1,34 @@
+---
+# Shell interactif installé et défini comme shell de connexion.
+# Valeurs possibles : bash, zsh.
+shell_default: zsh
+
+# Change réellement le shell de connexion de l'utilisateur.
+shell_set_as_login_shell: true
+
+# Invite de commande Starship (installée via le gestionnaire de paquets).
+shell_install_starship: true
+
+# Version installée quand la distribution ne fournit pas de paquet Starship.
+shell_starship_version: "1.23.0"
+
+# Alias déployés dans ~/.config/shell/aliases.sh.
+# Clé = alias, valeur = commande.
+shell_aliases:
+  ll: "ls -alFh"
+  la: "ls -A"
+  "..": "cd .."
+  "...": "cd ../.."
+  gs: "git status --short --branch"
+  gl: "git log --oneline --graph --decorate -20"
+  gd: "git diff"
+  ff: "fd"
+
+# Variables d'environnement déployées dans ~/.config/shell/exports.sh.
+shell_exports:
+  EDITOR: vim
+  VISUAL: vim
+  LESS: "-R"
+
+# Répertoire des fragments de configuration sourcés par les rc.
+shell_config_dir: "{{ workstation_home }}/.config/shell"

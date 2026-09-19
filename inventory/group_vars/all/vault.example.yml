@@ -1,0 +1,26 @@
+---
+# Modèle des variables sensibles.
+#
+# Copier ce fichier vers `vault.yml` puis le chiffrer :
+#
+#   cp inventory/group_vars/all/vault.example.yml inventory/group_vars/all/vault.yml
+#   ansible-vault encrypt inventory/group_vars/all/vault.yml
+#
+# `vault.yml` est ignoré par git tant qu'il n'est pas chiffré : une fois
+# chiffré, le retirer de .gitignore si l'on souhaite le versionner.
+#
+# Convention : toute variable sensible est préfixée `vault_` et n'est jamais
+# utilisée directement dans un rôle. Un rôle consomme une variable « publique »
+# définie dans un profil, qui pointe vers la variable de coffre :
+#
+#   # profiles/boulot.yml
+#   workstation_email: "{{ vault_boulot_email }}"
+
+vault_perso_email: "prenom.nom@example.com"
+vault_boulot_email: "prenom.nom@entreprise.example"
+
+# Clé publique déployée dans ~/.ssh/authorized_keys (facultatif).
+vault_ssh_authorized_key: ""
+
+# Jetons utilisés par les outils de développement (facultatif).
+vault_github_token: ""

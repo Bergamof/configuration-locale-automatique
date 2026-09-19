@@ -1,0 +1,38 @@
+---
+# Éditeur utilisé pour les messages de commit et les rebases interactifs.
+git_editor: vim
+
+# Branche créée par `git init`.
+git_default_branch: main
+
+# Stratégie de `git pull` : merge, rebase ou ff-only.
+git_pull_strategy: rebase
+
+# Signature GPG des commits. Nécessite une clé déjà présente dans le trousseau.
+git_sign_commits: false
+git_signing_key: ""
+
+# Répertoire auquel appliquer une identité distincte (conditionnel includeIf).
+# Vide = pas d'identité conditionnelle.
+git_work_directory: ""
+
+# Alias git déployés dans ~/.gitconfig.
+git_aliases:
+  st: status --short --branch
+  co: checkout
+  br: branch
+  ci: commit
+  lg: log --oneline --graph --decorate --all
+  unstage: reset HEAD --
+  last: log -1 HEAD --stat
+
+# Motifs ignorés globalement, déployés dans ~/.config/git/ignore.
+git_global_ignore:
+  - ".DS_Store"
+  - "*.swp"
+  - ".idea/"
+  - ".vscode/"
+  - ".venv/"
+
+# Installe delta comme pager de diff lorsque la distribution le fournit.
+git_install_delta: true

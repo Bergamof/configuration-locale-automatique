@@ -1,0 +1,58 @@
+---
+# pacman ne prend pas en charge les mises à jour partielles : rafraîchir la
+# base de données sans mettre à niveau le système laisse un poste dont les
+# paquets installés dépendent de versions disparues des dépôts. La première
+# installation échoue alors sur un conflit de dépendances, par exemple
+# « installing libelf (0.196-1) breaks dependency 'libelf=0.194' required by
+# lib32-libelf ». D'où un `pacman -Syu` complet, et aucun rafraîchissement
+# seul : ne rien synchroniser est plus sûr que synchroniser à moitié.
+- name: Mettre le poste à niveau avant toute installation
+  when: base_system_upgrade | bool
+  block:
+    - name: Mettre à niveau le système et la base de données pacman
+      become: true
+      community.general.pacman:
+        update_cache: true
+        upgrade: true
+
+  rescue:
+    # Un paquet retiré des dépôts n'est plus reconstruit et fige les versions
+    # qu'il exige : il bloque alors toute mise à niveau. Les nommer tous d'un
+    # coup évite à l'utilisateur de les découvrir un par un, `pacman -Syu`
+    # ne signalant que les conflits de la transaction en cours.
+    - name: Rechercher les paquets qui bloquent la mise à niveau
+      ansible.builtin.script:
+        cmd: paquets-bloquants.sh
+      register: base_blocking_packages
+      changed_when: false
+      failed_when: false
+
+    - name: Expliquer pourquoi la mise à niveau est indispensable
+      ansible.builtin.fail:
+        msg: |
+          La mise à niveau du système a échoué ; l'installation s'arrête ici.
+          Installer sur un système à moitié à jour échouerait de toute façon :
+          Arch et Manjaro ne prennent pas en charge les mises à jour partielles.
+
+          Erreur pacman :
+          {{ ansible_failed_result.stdout | default(ansible_failed_result.msg, true) }}
+          {% set bloquants = base_blocking_packages.stdout_lines | default([], true) %}
+          {% if bloquants %}
+          Ces paquets ne sont plus dans aucun dépôt et figent la version de
+          paquets qui, eux, doivent être mis à niveau :
+
+          {{ bloquants | join('\n') }}
+
+          Ils bloqueront toute mise à niveau tant qu'ils seront installés.
+          Les retirer tous ensemble, et non un par un :
+          sudo pacman -Rs {{ bloquants | map('split', ' ') | map('first') | join(' ') }}
+
+          Si pacman refuse parce qu'un autre paquet les réclame, vérifier ce
+          qui en dépend (pacman -Qi <paquet>) avant de forcer avec -Rdd.
+          {% else %}
+          Aucun paquet installé ne fige de version : la cause est ailleurs.
+          Piste la plus fréquente, un miroir à moitié synchronisé. Rafraîchir
+          la liste des miroirs puis forcer le téléchargement des bases :
+          sudo pacman-mirrors --fasttrack && sudo pacman -Syyu
+          {% endif %}
+          Une fois « sudo pacman -Syu » passé à la main, relancer ./bootstrap.sh.

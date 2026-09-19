@@ -1,0 +1,5 @@
+---
+ssh_client_package: openssh
+
+# Requis par community.crypto pour générer la paire de clés.
+ssh_crypto_package: python-cryptography

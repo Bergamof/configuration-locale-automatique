@@ -1,0 +1,21 @@
+---
+# Correspondance identifiant logique -> nom de paquet Arch/Manjaro.
+base_package_names:
+  curl: curl
+  wget: wget
+  unzip: unzip
+  tree: tree
+  htop: htop
+  jq: jq
+  ripgrep: ripgrep
+  fd: fd
+  bat: bat
+  vim: vim
+
+base_system_packages:
+  - ca-certificates
+  - gnupg
+  - which
+
+# Fichier définissant la locale système par défaut.
+base_locale_conf_path: /etc/locale.conf

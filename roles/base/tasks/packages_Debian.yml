@@ -1,0 +1,13 @@
+---
+# apt sait installer un paquet sans mettre à niveau le reste du système :
+# un simple rafraîchissement du cache suffit ici, contrairement à pacman
+# (voir packages_Archlinux.yml).
+- name: Mettre à jour le cache apt
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ base_cache_valid_time }}"
+  # Rafraîchir un index de paquets n'est pas une modification du poste :
+  # sans cela, un dépôt qui bouge entre deux exécutions ferait échouer le
+  # test d'idempotence.
+  changed_when: false

@@ -1,0 +1,22 @@
+---
+dev_language_packages:
+  python:
+    - python
+    - python-pip
+  node:
+    - nodejs
+    - npm
+  java:
+    - jdk-openjdk
+  go:
+    - go
+  rust:
+    - rust
+
+dev_build_packages:
+  - base-devel
+
+dev_docker_packages:
+  - docker
+  - docker-buildx
+  - docker-compose

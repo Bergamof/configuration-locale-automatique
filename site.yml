@@ -1,0 +1,78 @@
+---
+- name: Configurer le poste de travail local
+  hosts: workstation
+  gather_facts: true
+
+  vars_files:
+    - profiles/common.yml
+    - "profiles/{{ workstation_profile }}.yml"
+
+  pre_tasks:
+    - name: Vérifier que le profil demandé existe
+      ansible.builtin.assert:
+        that:
+          - workstation_profile is defined
+          - workstation_profile | length > 0
+        fail_msg: >-
+          Aucun profil sélectionné. Relancer via ./bootstrap.sh ou passer
+          `-e workstation_profile=<perso|boulot>` à ansible-playbook.
+        quiet: true
+      tags: [always]
+
+    - name: Vérifier que la distribution est prise en charge
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['os_family'] in supported_os_families
+        fail_msg: >-
+          Distribution non prise en charge : {{ ansible_facts['distribution'] }}
+          (famille {{ ansible_facts['os_family'] }}). Familles supportées :
+          {{ supported_os_families | join(', ') }}.
+        quiet: true
+      vars:
+        supported_os_families:
+          - Archlinux
+          - Debian
+      tags: [always]
+
+    - name: Vérifier que le playbook n'est pas exécuté en root
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['user_id'] != 'root'
+        fail_msg: >-
+          Le playbook configure le compte utilisateur courant et doit être
+          lancé sans sudo. Les tâches système escaladent d'elles-mêmes.
+        quiet: true
+      tags: [always]
+
+    - name: Afficher le plan d'exécution
+      ansible.builtin.debug:
+        msg: >-
+          Profil « {{ workstation_profile }} » sur {{ ansible_facts['distribution'] }}
+          {{ ansible_facts['distribution_version'] }} — rôles :
+          {{ workstation_roles | join(', ') }}
+      tags: [always]
+
+  roles:
+    - role: base
+      tags: [base]
+      when: "'base' in workstation_roles"
+
+    - role: shell
+      tags: [shell]
+      when: "'shell' in workstation_roles"
+
+    - role: git
+      tags: [git]
+      when: "'git' in workstation_roles"
+
+    - role: ssh
+      tags: [ssh]
+      when: "'ssh' in workstation_roles"
+
+    - role: dev
+      tags: [dev]
+      when: "'dev' in workstation_roles"
+
+    - role: desktop
+      tags: [desktop]
+      when: "'desktop' in workstation_roles"

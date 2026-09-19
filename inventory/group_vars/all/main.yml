@@ -1,0 +1,24 @@
+---
+# Variables partagées par tous les profils.
+# Précédence : ces valeurs sont surchargeables par profiles/<profil>.yml
+# (les vars_files d'un play l'emportent sur les group_vars).
+
+# Profil actif. Écrasé par `-e workstation_profile=...` (bootstrap.sh le fait).
+workstation_profile: perso
+
+# Liste effective des rôles joués : tronc commun + rôles du profil.
+# `common_roles` vient de profiles/common.yml, `profile_roles` du profil choisi.
+workstation_roles: "{{ common_roles | union(profile_roles) }}"
+
+# Compte utilisateur configuré : celui qui lance le playbook. bootstrap.sh
+# refuse de s'exécuter en root, les tâches système escaladent via `become`.
+workstation_user: "{{ ansible_facts['user_id'] }}"
+workstation_home: "{{ ansible_facts['env'].HOME }}"
+
+# Localisation du poste.
+workstation_timezone: Europe/Paris
+workstation_locale: fr_FR.UTF-8
+
+# Identité par défaut, surchargée par profil (git, ssh).
+workstation_full_name: ""
+workstation_email: ""

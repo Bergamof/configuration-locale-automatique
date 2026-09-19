@@ -1,0 +1,47 @@
+---
+- name: Charger les variables propres à la distribution
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Installer le client SSH
+  become: true
+  ansible.builtin.package:
+    name: "{{ ssh_client_package }}"
+    state: present
+
+- name: Installer la dépendance de génération de clés
+  become: true
+  ansible.builtin.package:
+    name: "{{ ssh_crypto_package }}"
+    state: present
+  when: ssh_generate_key | bool
+
+- name: Créer le répertoire ~/.ssh
+  ansible.builtin.file:
+    path: "{{ workstation_home }}/.ssh"
+    state: directory
+    owner: "{{ workstation_user }}"
+    mode: "0700"
+
+- name: Générer la paire de clés du poste
+  community.crypto.openssh_keypair:
+    path: "{{ ssh_key_path }}"
+    type: "{{ ssh_key_type }}"
+    comment: "{{ ssh_key_comment }}"
+    owner: "{{ workstation_user }}"
+    mode: "0600"
+    regenerate: never
+  when: ssh_generate_key | bool
+
+- name: Déployer la configuration du client SSH
+  ansible.builtin.template:
+    src: ssh_config.j2
+    dest: "{{ workstation_home }}/.ssh/config"
+    owner: "{{ workstation_user }}"
+    mode: "0600"
+
+- name: Autoriser la clé publique de confiance
+  ansible.posix.authorized_key:
+    user: "{{ workstation_user }}"
+    key: "{{ ssh_authorized_key }}"
+    state: present
+  when: ssh_authorized_key | length > 0

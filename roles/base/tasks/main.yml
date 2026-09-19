@@ -1,0 +1,45 @@
+---
+- name: Charger les variables propres à la distribution
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Vérifier que chaque outil du socle est connu pour cette distribution
+  ansible.builtin.assert:
+    that:
+      - base_tools | difference(base_package_names.keys() | list) | length == 0
+    fail_msg: >-
+      Outils sans nom de paquet défini pour {{ ansible_facts['os_family'] }} :
+      {{ base_tools | difference(base_package_names.keys() | list) | join(', ') }}.
+      Compléter roles/base/vars/{{ ansible_facts['os_family'] }}.yml.
+    quiet: true
+
+- name: Synchroniser le poste avec les dépôts de paquets
+  ansible.builtin.include_tasks: "packages_{{ ansible_facts['os_family'] }}.yml"
+
+- name: Installer les paquets système indispensables
+  become: true
+  ansible.builtin.package:
+    name: "{{ base_system_packages }}"
+    state: present
+
+- name: Installer les outils en ligne de commande du socle
+  become: true
+  ansible.builtin.package:
+    name: "{{ base_tools | map('extract', base_package_names) | list }}"
+    state: present
+
+- name: Installer les paquets supplémentaires demandés par le profil
+  become: true
+  ansible.builtin.package:
+    name: "{{ base_extra_packages }}"
+    state: present
+  when: base_extra_packages | length > 0
+
+- name: Configurer la localisation du poste
+  ansible.builtin.include_tasks: locale.yml
+  when: base_manage_locale | bool
+
+- name: Définir le fuseau horaire
+  become: true
+  community.general.timezone:
+    name: "{{ workstation_timezone }}"
+  when: base_manage_timezone | bool

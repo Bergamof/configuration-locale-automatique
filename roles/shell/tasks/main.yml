@@ -1,0 +1,68 @@
+---
+- name: Charger les variables propres à la distribution
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Vérifier que le shell demandé est pris en charge
+  ansible.builtin.assert:
+    that:
+      - shell_default in shell_packages
+    fail_msg: >-
+      Shell « {{ shell_default }} » inconnu pour {{ ansible_facts['os_family'] }}.
+      Valeurs possibles : {{ shell_packages.keys() | join(', ') }}.
+    quiet: true
+
+- name: Installer le shell interactif
+  become: true
+  ansible.builtin.package:
+    name: "{{ shell_packages[shell_default] }}"
+    state: present
+
+- name: Installer l'invite de commande Starship
+  ansible.builtin.include_tasks: starship.yml
+  when: shell_install_starship | bool
+
+- name: Créer le répertoire des fragments de configuration du shell
+  ansible.builtin.file:
+    path: "{{ shell_config_dir }}"
+    state: directory
+    owner: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Déployer les fragments de configuration du shell
+  ansible.builtin.template:
+    src: "{{ item }}.sh.j2"
+    dest: "{{ shell_config_dir }}/{{ item }}.sh"
+    owner: "{{ workstation_user }}"
+    mode: "0644"
+  loop:
+    - aliases
+    - exports
+
+- name: S'assurer que les fichiers rc existent
+  ansible.builtin.file:
+    path: "{{ workstation_home }}/.{{ shell_default }}rc"
+    state: touch
+    owner: "{{ workstation_user }}"
+    mode: "0644"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Faire sourcer les fragments par le shell de connexion
+  ansible.builtin.blockinfile:
+    path: "{{ workstation_home }}/.{{ shell_default }}rc"
+    marker: "# {mark} configuration-locale-automatique"
+    block: |
+      for _fragment in "{{ shell_config_dir }}"/*.sh; do
+        [ -r "$_fragment" ] && . "$_fragment"
+      done
+      unset _fragment
+      {% if shell_install_starship %}
+      command -v starship >/dev/null 2>&1 && eval "$(starship init {{ shell_default }})"
+      {% endif %}
+
+- name: Définir le shell de connexion de l'utilisateur
+  become: true
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    shell: "/usr/bin/{{ shell_default }}"
+  when: shell_set_as_login_shell | bool
