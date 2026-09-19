@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (premier passage réel réussi sur Manjaro)
+> Dernière mise à jour : 2026-09-19 (socle validé sur Manjaro et Ubuntu 24.04)
 
 ## 1. Objet du projet
 
@@ -310,26 +310,28 @@ Limites connues du scénario :
   réel de tous les gabarits Jinja2, et **séquence Molecule complète au
   vert sur les deux distributions** (converge, idempotence `changed=0`,
   verify).
-- **Passage réel réussi sur Manjaro**, profil `perso` : `base`, `shell`,
-  `git`, `ssh`, `desktop` et `dev` joués sur une vraie machine, après les
-  trois correctifs de la session (défaut « oui » à la confirmation,
-  détection sudo, `pacman -Syu`) et le déblocage des paquets retirés des
-  dépôts. Docker n'en fait pas partie : `dev_install_docker: false` dans
-  le profil `perso`.
+- **Passages réels réussis sur les deux distributions cibles**, profil
+  `perso` : `base`, `shell`, `git`, `ssh`, `desktop` et `dev` joués sur
+  une vraie machine, `bootstrap.sh` compris.
+  - Manjaro, après les trois correctifs de la session (défaut « oui » à
+    la confirmation, détection sudo, `pacman -Syu`) et le déblocage des
+    paquets retirés des dépôts.
+  - Ubuntu 24.04, sans aucun correctif : rien à signaler au premier
+    passage.
+  Docker n'en fait partie sur aucune des deux : `dev_install_docker` est
+  à faux dans les deux profils.
 
 **Non vérifié / à faire**
 
-- **Ubuntu : aucun passage réel à ce jour** (test en cours côté
-  utilisateur). Le conteneur Molecule ne couvre ni `desktop` ni `dev`,
-  écartés par `skip-tags`. Points à surveiller, propres à cette
-  distribution : `firefox` est un paquet de transition vers le snap,
-  Flatpak et le dépôt Flathub sont installés par le rôle `desktop` alors
-  qu'ils sont absents d'une Ubuntu neuve, et `bootstrap.sh` refuse de
-  continuer sous ansible-core 2.15 (Ubuntu 24.04 fournit 2.16 via le
-  paquet `ansible`, mais 22.04 est trop ancienne — d'où le message
-  renvoyant vers pipx).
 - Docker (`dev_install_docker: true`) n'a été joué sur aucune machine
   réelle, les deux profils le laissant à faux.
+- Ubuntu 22.04 n'a pas été essayée : `bootstrap.sh` refuse de continuer
+  sous ansible-core 2.15 et cette version fournit 2.12 (24.04 fournit
+  2.16 via le paquet `ansible`). Le message renvoie vers pipx.
+- Le mode `--check` n'a jamais été joué en entier : sur une Ubuntu neuve,
+  la déclaration du dépôt Flathub devrait échouer en simulation, Flatpak
+  n'y étant pas réellement installé. Limite d'Ansible, pas du rôle — à
+  traiter si le besoin d'une simulation propre se présente.
 - Étendre le scénario ou en ajouter un pour `dev` et `desktop`
   demanderait des conteneurs avec systemd (`privileged`,
   `cgroupns_mode: host`) : faisable, mais plus fragile en CI.
