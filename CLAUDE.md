@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (paquets bloquant la mise à niveau)
+> Dernière mise à jour : 2026-09-19 (premier passage réel réussi sur Manjaro)
 
 ## 1. Objet du projet
 
@@ -310,13 +310,26 @@ Limites connues du scénario :
   réel de tous les gabarits Jinja2, et **séquence Molecule complète au
   vert sur les deux distributions** (converge, idempotence `changed=0`,
   verify).
+- **Passage réel réussi sur Manjaro**, profil `perso` : `base`, `shell`,
+  `git`, `ssh`, `desktop` et `dev` joués sur une vraie machine, après les
+  trois correctifs de la session (défaut « oui » à la confirmation,
+  détection sudo, `pacman -Syu`) et le déblocage des paquets retirés des
+  dépôts. Docker n'en fait pas partie : `dev_install_docker: false` dans
+  le profil `perso`.
 
 **Non vérifié / à faire**
 
-- Aucune exécution sur une vraie machine Manjaro ou Ubuntu : les rôles
-  sont validés en conteneur, ce qui ne couvre ni `dev` (Docker) ni
-  `desktop` (Flatpak, applications graphiques), ni `bootstrap.sh` de bout
-  en bout. Le premier passage réel doit se faire avec `--check`.
+- **Ubuntu : aucun passage réel à ce jour** (test en cours côté
+  utilisateur). Le conteneur Molecule ne couvre ni `desktop` ni `dev`,
+  écartés par `skip-tags`. Points à surveiller, propres à cette
+  distribution : `firefox` est un paquet de transition vers le snap,
+  Flatpak et le dépôt Flathub sont installés par le rôle `desktop` alors
+  qu'ils sont absents d'une Ubuntu neuve, et `bootstrap.sh` refuse de
+  continuer sous ansible-core 2.15 (Ubuntu 24.04 fournit 2.16 via le
+  paquet `ansible`, mais 22.04 est trop ancienne — d'où le message
+  renvoyant vers pipx).
+- Docker (`dev_install_docker: true`) n'a été joué sur aucune machine
+  réelle, les deux profils le laissant à faux.
 - Étendre le scénario ou en ajouter un pour `dev` et `desktop`
   demanderait des conteneurs avec systemd (`privileged`,
   `cgroupns_mode: host`) : faisable, mais plus fragile en CI.
