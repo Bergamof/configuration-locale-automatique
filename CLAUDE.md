@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (ajout des tests Molecule)
+> Dernière mise à jour : 2026-09-19 (tests Molecule ; une PR par session)
 
 ## 1. Objet du projet
 
@@ -122,8 +122,14 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
 
 **Git**
 
+- **Une seule pull request par session**, sauf indication contraire de
+  l'utilisateur : tout le travail d'une session va sur la même branche,
+  donc dans la même PR. Ne jamais empiler une seconde branche sur la
+  première pour livrer la suite du travail — un ajout se pousse sur la
+  branche déjà ouverte.
 - Branches nommées d'après le changement porté :
-  `feat/<sujet>`, `fix/<sujet>`, `docs/<sujet>`.
+  `feat/<sujet>`, `fix/<sujet>`, `docs/<sujet>`. Le nom doit couvrir
+  l'ensemble du travail de la session, pas seulement son premier lot.
 - Messages de commit en français, style impératif.
 
 ## 7. Commandes utiles
