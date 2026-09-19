@@ -151,8 +151,8 @@ ansible-vault edit inventory/group_vars/all/vault.yml
 
 `molecule test` applique le **vrai** `site.yml` (importé par `converge.yml`)
 dans des conteneurs Ubuntu 24.04 et Arch, puis vérifie le résultat et
-l'idempotence. Séquence : destroy, create, converge, idempotence, verify,
-destroy.
+l'idempotence. Séquence : dependency, destroy, create, converge,
+idempotence, verify, destroy.
 
 Points de conception à connaître :
 
