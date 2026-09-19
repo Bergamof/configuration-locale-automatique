@@ -161,6 +161,26 @@ shfmt --indent 2 --case-indent --diff bootstrap.sh
 ansible-playbook site.yml --syntax-check -e workstation_profile=perso
 ```
 
+### Tests
+
+Le tronc commun est réellement appliqué dans des conteneurs Ubuntu 24.04 et
+Arch, puis vérifié — y compris son idempotence (une seconde exécution ne doit
+produire aucun changement).
+
+```bash
+pip install molecule docker
+ansible-galaxy collection install -r requirements.yml
+
+molecule test                        # séquence complète, puis nettoyage
+molecule converge                    # appliquer sans détruire, pour itérer
+molecule login -h molecule-ubuntu    # inspecter un conteneur
+molecule destroy                     # nettoyer
+```
+
+Docker doit être disponible localement. Les rôles `dev` et `desktop` sont
+écartés du scénario : Docker dans Docker, Flatpak et les applications
+graphiques ne sont pas testables en conteneur.
+
 Ces vérifications sont rejouées par la CI GitHub Actions sur chaque
 *pull request*. Les conventions du projet sont décrites dans
 [`CLAUDE.md`](CLAUDE.md).

@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19
+> Dernière mise à jour : 2026-09-19 (ajout des tests Molecule)
 
 ## 1. Objet du projet
 
@@ -45,6 +45,12 @@ profiles/
   boulot.yml                 Profil professionnel : profile_roles + surcharges
 roles/
   base/ shell/ git/ ssh/ dev/ desktop/ aur/
+molecule/default/           Scénario de test (voir § 7 bis)
+  molecule.yml               Plateformes, amorçage, inventaire
+  create.yml / destroy.yml   Cycle de vie des conteneurs
+  converge.yml               Importe le vrai site.yml
+  verify.yml                 Assertions sur le résultat
+  host_vars/                 Connexion Docker, utilisateur, profil de test
 docs/
   ajouter-un-role.md         Procédure d'extension
 ```
@@ -141,6 +147,41 @@ ansible-vault encrypt inventory/group_vars/all/vault.yml
 ansible-vault edit inventory/group_vars/all/vault.yml
 ```
 
+## 7 bis. Tests Molecule
+
+`molecule test` applique le **vrai** `site.yml` (importé par `converge.yml`)
+dans des conteneurs Ubuntu 24.04 et Arch, puis vérifie le résultat et
+l'idempotence. Séquence : destroy, create, converge, idempotence, verify,
+destroy.
+
+Points de conception à connaître :
+
+- Driver `default` (et non le driver docker de `molecule-plugins`) : le
+  playbook refuse de tourner en root, il faut donc créer un utilisateur
+  non privilégié dans le conteneur **avant** qu'Ansible s'y connecte.
+  `create.yml` le fait via l'API Docker (`docker_container_exec`), seule
+  voie possible tant que Python n'est pas installé dans l'image.
+- `provisioner.inventory.links` est **exclusif** : dès qu'il est présent,
+  Molecule ignore les `group_vars`/`host_vars` déclarés en ligne dans
+  `molecule.yml`. D'où `molecule/default/host_vars/*.yml` versionnés, et
+  le lien vers `inventory/group_vars` du projet (sans quoi
+  `workstation_roles` et consorts seraient indéfinis).
+- Portée : `skip-tags: dev,desktop`. Docker dans Docker, Flatpak et les
+  applications graphiques ne sont pas testables en conteneur.
+- `molecule/default/requirements.yml` ne contient que `community.docker`
+  (besoin des tests) ; les collections du poste restent à la racine.
+
+Limites connues du scénario :
+
+- `base_manage_timezone: false` sur la plateforme Arch :
+  `community.general.timezone` s'appuie sur systemd (ou sur
+  `/etc/sysconfig/clock`, `/etc/timezone`, qu'Arch n'utilise pas), absent
+  d'un conteneur. La tâche reste couverte par la plateforme Ubuntu.
+- L'image `archlinux:base` exclut `/usr/share/i18n` (directive
+  `NoExtract`) : sans elle `locale-gen` ne génère rien. Le
+  `bootstrap_command` de la plateforme retire la directive et réinstalle
+  glibc pour obtenir un système représentatif d'un vrai Manjaro.
+
 ## 8. Pièges rencontrés (ne pas les réintroduire)
 
 - `stdout_callback = yaml` **n'existe plus** (retiré de `community.general`
@@ -158,6 +199,18 @@ ansible-vault edit inventory/group_vars/all/vault.yml
   (Ubuntu 24.04 fournit 2.16, mais pas les versions antérieures).
 - `.yamllint` doit contenir `comments-indentation: false`, sinon
   `ansible-lint` refuse de réutiliser la configuration.
+- `community.crypto.openssh_keypair` exige le module Python
+  `cryptography` **sur la cible** : le rôle `ssh` installe donc
+  `python3-cryptography` / `python-cryptography` (découvert par Molecule,
+  le rôle échouait sur une Ubuntu minimale).
+- Un `update_cache` porte `changed_when: false` dans le rôle `base` : un
+  dépôt qui bouge entre deux exécutions rendrait sinon le test
+  d'idempotence instable. Rafraîchir un index n'est pas un changement
+  d'état du poste.
+- Deux `# noqa` justifiés dans `molecule/default/verify.yml`
+  (`command-instead-of-module` pour lire la config git effective,
+  `command-instead-of-shell` pour `command -v`). Préférer un `noqa` ciblé
+  et commenté à une entrée dans `skip_list`, qui doit rester vide.
 
 ## 9. État d'avancement
 
@@ -169,16 +222,22 @@ ansible-vault edit inventory/group_vars/all/vault.yml
 - Qualité : `.yamllint`, `.ansible-lint` (profil production),
   `.pre-commit-config.yaml`, CI GitHub Actions (shellcheck, shfmt,
   yamllint, ansible-lint, `--syntax-check` par profil).
+- Tests Molecule : scénario `default` (Ubuntu 24.04 + Arch), intégré à la
+  CI.
 - Vérifié : lint au vert, `--syntax-check` sur les deux profils, rendu
-  réel de tous les gabarits Jinja2.
+  réel de tous les gabarits Jinja2, et **séquence Molecule complète au
+  vert sur les deux distributions** (converge, idempotence `changed=0`,
+  verify).
 
 **Non vérifié / à faire**
 
-- Aucune exécution de bout en bout sur une vraie machine Manjaro ou
-  Ubuntu (l'environnement de développement ne le permet pas). Le premier
-  passage réel doit se faire avec `--check` puis sans.
-- Tests Molecule (conteneurs Ubuntu + Arch) non mis en place : c'est la
-  prochaine étape naturelle pour tester l'idempotence en CI.
+- Aucune exécution sur une vraie machine Manjaro ou Ubuntu : les rôles
+  sont validés en conteneur, ce qui ne couvre ni `dev` (Docker) ni
+  `desktop` (Flatpak, applications graphiques), ni `bootstrap.sh` de bout
+  en bout. Le premier passage réel doit se faire avec `--check`.
+- Étendre le scénario ou en ajouter un pour `dev` et `desktop`
+  demanderait des conteneurs avec systemd (`privileged`,
+  `cgroupns_mode: host`) : faisable, mais plus fragile en CI.
 - Le profil `boulot` exige `vault_boulot_email` : sans coffre, le rôle
   `git` s'arrête sur un `assert` explicite. Comportement voulu.
 - `firefox` sur Ubuntu est un paquet de transition vers le snap.

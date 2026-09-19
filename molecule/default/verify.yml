@@ -1,0 +1,143 @@
+---
+- name: Vérifier la configuration appliquée
+  hosts: workstation
+  gather_facts: true
+
+  # Les valeurs attendues proviennent des mêmes fichiers que ceux joués
+  # par converge : le test ne redéfinit pas ses propres constantes.
+  vars_files:
+    - ../../profiles/common.yml
+    - ../../profiles/perso.yml
+    - ../../roles/shell/defaults/main.yml
+
+  vars:
+    verify_home: "{{ ansible_env.HOME }}"
+
+  tasks:
+    - name: Relever l'état des fichiers attendus
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: verify_files
+      loop:
+        - "{{ verify_home }}/.gitconfig"
+        - "{{ verify_home }}/.config/git/ignore"
+        - "{{ verify_home }}/.config/shell/aliases.sh"
+        - "{{ verify_home }}/.config/shell/exports.sh"
+        - "{{ verify_home }}/.ssh/config"
+        - "{{ verify_home }}/.ssh/id_ed25519"
+        - "{{ verify_home }}/.ssh/id_ed25519.pub"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Vérifier que tous les fichiers attendus ont été déployés
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "Fichier manquant : {{ item.item }}"
+        quiet: true
+      loop: "{{ verify_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Vérifier les permissions des fichiers sensibles
+      ansible.builtin.assert:
+        that:
+          - (verify_files.results | selectattr('item', 'equalto', verify_home + '/.ssh/config') | first).stat.mode == '0600'
+          - (verify_files.results | selectattr('item', 'equalto', verify_home + '/.ssh/id_ed25519') | first).stat.mode == '0600'
+        fail_msg: "Les fichiers SSH doivent être en 0600."
+        quiet: true
+
+    # noqa: command-instead-of-module — on vérifie que git relit bien la
+    # configuration déployée, ce que le module git ne permet pas de faire.
+    - name: Lire la configuration git effective # noqa: command-instead-of-module
+      ansible.builtin.command:
+        cmd: git config --global --list
+      register: verify_git_config
+      changed_when: false
+
+    - name: Vérifier que l'identité et les alias git sont configurés
+      ansible.builtin.assert:
+        that:
+          - "'user.name=' ~ workstation_full_name in verify_git_config.stdout_lines"
+          - "'user.email=' ~ workstation_email in verify_git_config.stdout_lines"
+          - "'init.defaultbranch=main' in verify_git_config.stdout_lines"
+          - "'alias.st=status --short --branch' in verify_git_config.stdout_lines"
+        fail_msg: |
+          Configuration git inattendue :
+          {{ verify_git_config.stdout }}
+        quiet: true
+
+    - name: Lire le fichier rc du shell
+      ansible.builtin.slurp:
+        src: "{{ verify_home }}/.{{ shell_default }}rc"
+      register: verify_rc
+
+    - name: Vérifier que les fragments de shell sont sourcés par le rc
+      ansible.builtin.assert:
+        that:
+          - "'BEGIN configuration-locale-automatique' in verify_rc_content"
+          - "'END configuration-locale-automatique' in verify_rc_content"
+          - "shell_config_dir in verify_rc_content"
+        fail_msg: >-
+          Le bloc géré est absent de
+          {{ verify_home }}/.{{ shell_default }}rc.
+        quiet: true
+      vars:
+        verify_rc_content: "{{ verify_rc.content | b64decode }}"
+
+    # noqa: command-instead-of-shell — `command -v` est une primitive du
+    # shell, ansible.builtin.command ne peut pas l'exécuter.
+    - name: Relever les outils du socle installés # noqa: command-instead-of-shell
+      ansible.builtin.shell:
+        cmd: "command -v {{ item }}"
+      register: verify_commands
+      changed_when: false
+      failed_when: false
+      loop:
+        - git
+        - rg
+        - jq
+        - htop
+        - "{{ shell_default }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Vérifier que les outils du socle sont disponibles
+      ansible.builtin.assert:
+        that:
+          - item.rc == 0
+        fail_msg: "Commande introuvable : {{ item.item }}"
+        quiet: true
+      loop: "{{ verify_commands.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Vérifier le shell de connexion de l'utilisateur
+      ansible.builtin.command:
+        cmd: "getent passwd {{ ansible_user_id }}"
+      register: verify_login_shell
+      changed_when: false
+
+    - name: Vérifier que le shell de connexion est bien celui demandé
+      ansible.builtin.assert:
+        that:
+          - verify_login_shell.stdout.endswith('/' ~ shell_default)
+        fail_msg: >-
+          Shell de connexion inattendu : {{ verify_login_shell.stdout }}
+          (attendu : {{ shell_default }}).
+        quiet: true
+
+    - name: Vérifier que la locale a été générée
+      ansible.builtin.command:
+        cmd: locale -a
+      register: verify_locales
+      changed_when: false
+
+    - name: Vérifier la présence de la locale configurée
+      ansible.builtin.assert:
+        that:
+          - workstation_locale | replace('-', '') | lower in verify_locales.stdout | replace('-', '') | lower
+        fail_msg: >-
+          Locale {{ workstation_locale }} absente.
+          Locales disponibles : {{ verify_locales.stdout_lines | join(', ') }}.
+        quiet: true

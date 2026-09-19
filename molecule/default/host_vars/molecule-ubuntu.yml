@@ -1,0 +1,9 @@
+---
+# Connexion par l'API Docker : ni SSH ni clé à gérer.
+ansible_connection: community.docker.docker
+
+# Le playbook refuse de s'exécuter en root ; create.yml crée ce compte.
+ansible_user: testeur
+
+# Profil appliqué pendant le test.
+workstation_profile: perso

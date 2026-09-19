@@ -98,6 +98,21 @@ ansible-playbook site.yml --syntax-check -e workstation_profile=perso
 Le second passage sans changement est le test d'idempotence : s'il reste des
 `changed`, une tâche n'est pas idempotente et doit être corrigée.
 
+Pour un rôle du tronc commun, l'ajouter au scénario Molecule évite d'avoir à
+refaire cette vérification à la main :
+
+```bash
+molecule test        # séquence complète sur Ubuntu et Arch
+molecule converge    # appliquer sans détruire, pour itérer
+molecule login -h molecule-ubuntu   # inspecter le conteneur
+```
+
+Compléter ensuite `molecule/default/verify.yml` avec les assertions
+correspondantes : fichiers déployés, permissions, commandes disponibles.
+Un rôle qui exige un vrai poste (matériel graphique, systemd, Docker) reste
+hors du scénario ; il suffit de l'ajouter à `skip-tags` dans
+`molecule/default/molecule.yml`.
+
 ## 6. Paquets AUR (Arch / Manjaro)
 
 Ne pas appeler `kewlfft.aur.aur` directement : passer par le rôle `aur`, qui
