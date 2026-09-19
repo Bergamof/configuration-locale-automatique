@@ -1,9 +1,0 @@
----
-- name: Mettre à jour le cache apt
-  become: true
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: "{{ base_cache_valid_time }}"
-  # Voir cache_Archlinux.yml : le rafraîchissement du cache n'est pas
-  # un changement d'état du poste.
-  changed_when: false

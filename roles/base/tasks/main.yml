@@ -12,8 +12,8 @@
       Compléter roles/base/vars/{{ ansible_facts['os_family'] }}.yml.
     quiet: true
 
-- name: Rafraîchir le cache des dépôts
-  ansible.builtin.include_tasks: "cache_{{ ansible_facts['os_family'] }}.yml"
+- name: Synchroniser le poste avec les dépôts de paquets
+  ansible.builtin.include_tasks: "packages_{{ ansible_facts['os_family'] }}.yml"
 
 - name: Installer les paquets système indispensables
   become: true

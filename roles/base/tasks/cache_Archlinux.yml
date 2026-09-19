@@ -1,9 +1,0 @@
----
-- name: Mettre à jour la base de données pacman
-  become: true
-  community.general.pacman:
-    update_cache: true
-  # Rafraîchir un index de paquets n'est pas une modification du poste :
-  # sans cela, un dépôt qui bouge entre deux exécutions ferait échouer le
-  # test d'idempotence.
-  changed_when: false

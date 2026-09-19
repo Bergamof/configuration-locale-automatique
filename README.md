@@ -63,7 +63,7 @@ Les rôles disponibles :
 
 | Rôle | Contenu |
 | --- | --- |
-| `base` | Outils en ligne de commande essentiels, fuseau horaire, locale |
+| `base` | Mise à niveau du système, outils en ligne de commande essentiels, fuseau horaire, locale |
 | `shell` | zsh/bash, alias, variables d'environnement, invite Starship |
 | `git` | `~/.gitconfig`, alias, ignore global, identité conditionnelle par répertoire |
 | `ssh` | `~/.ssh/config`, génération de clé ed25519, clés autorisées |

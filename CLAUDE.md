@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (retours du premier test sur Manjaro)
+> Dernière mise à jour : 2026-09-19 (mises à jour partielles pacman)
 
 ## 1. Objet du projet
 
@@ -86,8 +86,11 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
   distribution (`base_package_names`, `dev_language_packages`,
   `desktop_app_packages`). Un `assert` en début de rôle signale tout
   identifiant sans traduction, avec le fichier à compléter.
-- `ansible.builtin.package` est utilisé partout ; `base` rafraîchit le
-  cache une fois pour toutes (`cache_Debian.yml` / `cache_Archlinux.yml`).
+- `ansible.builtin.package` est utilisé partout ; `base` synchronise le
+  poste avec les dépôts une fois pour toutes
+  (`packages_Debian.yml` / `packages_Archlinux.yml`). Sur Arch, cette
+  synchronisation est une **mise à niveau complète** (`pacman -Syu`), pas
+  un simple rafraîchissement — voir § 8.
 - L'AUR passe par le rôle `aur` (installe `paru`, puis `kewlfft.aur.aur`),
   inclus uniquement si `ansible_facts['os_family'] == 'Archlinux'` et si la liste
   `*_aur_packages` du rôle appelant est non vide.
@@ -244,6 +247,18 @@ Limites connues du scénario :
   ancienne du contrôleur ne montre rien : reproduire avec la version des
   distributions cibles (Manjaro fournit 2.21, un venv Python 3.11 plafonne
   à 2.19).
+- **Jamais de `pacman -Sy` sans `-u`** : Arch et Manjaro ne prennent pas en
+  charge les mises à jour partielles. Rafraîchir la base de données sans
+  mettre à niveau le système laisse des paquets installés qui dépendent de
+  versions disparues des dépôts ; la première installation échoue alors sur
+  « could not satisfy transaction / breaks dependency ». Reproduit en
+  conteneur avec `lib32-libelf` figé sur un instantané de l'archive Arch,
+  puis corrigé par `-Syu`. Le rôle `base` fait donc `update_cache` **et**
+  `upgrade` (`base_system_upgrade`, vrai par défaut) ; à faux, il ne
+  synchronise rien du tout, car ne rien faire vaut mieux que synchroniser à
+  moitié. Même règle dans le `bootstrap_command` du scénario Molecule.
+  apt, lui, n'a pas cette contrainte : côté Debian on garde le simple
+  rafraîchissement du cache.
 - `sudo -n true` **ne dit pas** si Ansible pourra escalader : l'installation
   des prérequis laisse un jeton sudo valide dans le terminal, le test
   réussit à tort, puis le playbook échoue sur « sudo: il est nécessaire de

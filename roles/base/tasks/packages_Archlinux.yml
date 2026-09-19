@@ -1,0 +1,14 @@
+---
+# pacman ne prend pas en charge les mises à jour partielles : rafraîchir la
+# base de données sans mettre à niveau le système laisse un poste dont les
+# paquets installés dépendent de versions disparues des dépôts. La première
+# installation échoue alors sur un conflit de dépendances, par exemple
+# « installing libelf (0.196-1) breaks dependency 'libelf=0.194' required by
+# lib32-libelf ». D'où un `pacman -Syu` complet, et aucun rafraîchissement
+# seul : ne rien synchroniser est plus sûr que synchroniser à moitié.
+- name: Mettre à niveau le système et la base de données pacman
+  become: true
+  community.general.pacman:
+    update_cache: true
+    upgrade: true
+  when: base_system_upgrade | bool

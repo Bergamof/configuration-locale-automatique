@@ -23,3 +23,12 @@ base_manage_locale: true
 
 # Durée de validité du cache de paquets, en secondes (apt uniquement).
 base_cache_valid_time: 3600
+
+# Mise à niveau complète du système avant toute installation
+# (pacman uniquement). À laisser à true : Arch et Manjaro ne prennent pas
+# en charge les mises à jour partielles, et une installation faite sur une
+# base de données synchronisée mais un système non mis à niveau échoue sur
+# un conflit de dépendances. Passer à false n'est cohérent que pour un
+# poste déjà à jour : la base de données pacman n'est alors pas
+# rafraîchie non plus.
+base_system_upgrade: true

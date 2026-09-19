@@ -31,9 +31,11 @@ platforms:
     # définitions de locales, locale-gen ne peut rien générer, ce qu'un vrai
     # Manjaro n'a pas. On réinstalle donc glibc sans cette exclusion pour
     # obtenir un système représentatif.
+    # `-Syu` et non `-Sy` : l'amorçage ne doit pas laisser le conteneur en
+    # état de mise à jour partielle, que le rôle base aurait à réparer.
     bootstrap_command: >-
       sed -i '/^NoExtract/d' /etc/pacman.conf
-      && pacman -Sy --noconfirm glibc
+      && pacman -Syu --noconfirm glibc
       && pacman -S --noconfirm --needed python python-cryptography sudo
 
 provisioner:
