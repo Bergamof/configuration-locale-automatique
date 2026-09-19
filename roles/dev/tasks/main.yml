@@ -1,0 +1,51 @@
+---
+- name: Charger les variables propres à la distribution
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Vérifier que les langages demandés sont connus pour cette distribution
+  ansible.builtin.assert:
+    that:
+      - dev_languages | difference(dev_language_packages.keys() | list) | length == 0
+    fail_msg: >-
+      Langages sans paquet défini pour {{ ansible_os_family }} :
+      {{ dev_languages | difference(dev_language_packages.keys() | list) | join(', ') }}.
+      Compléter roles/dev/vars/{{ ansible_os_family }}.yml.
+    quiet: true
+
+- name: Installer l'outillage de compilation
+  become: true
+  ansible.builtin.package:
+    name: "{{ dev_build_packages }}"
+    state: present
+  when: dev_install_build_tools | bool
+
+- name: Installer les langages demandés par le profil
+  become: true
+  ansible.builtin.package:
+    name: "{{ dev_languages | map('extract', dev_language_packages) | flatten | list }}"
+    state: present
+  when: dev_languages | length > 0
+
+- name: Installer les paquets de développement supplémentaires
+  become: true
+  ansible.builtin.package:
+    name: "{{ dev_extra_packages }}"
+    state: present
+  when: dev_extra_packages | length > 0
+
+- name: Installer Docker
+  ansible.builtin.include_tasks: "docker_{{ ansible_os_family }}.yml"
+  when: dev_install_docker | bool
+
+- name: Configurer le service Docker
+  ansible.builtin.include_tasks: docker_service.yml
+  when: dev_install_docker | bool
+
+- name: Installer les paquets AUR de développement
+  ansible.builtin.include_role:
+    name: aur
+  vars:
+    aur_packages: "{{ dev_aur_packages }}"
+  when:
+    - ansible_os_family == 'Archlinux'
+    - dev_aur_packages | length > 0

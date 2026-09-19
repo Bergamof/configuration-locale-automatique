@@ -1,0 +1,6 @@
+---
+git_packages:
+  - git
+  - git-lfs
+
+git_delta_package: git-delta

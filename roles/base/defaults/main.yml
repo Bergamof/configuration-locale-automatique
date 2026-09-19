@@ -1,0 +1,25 @@
+---
+# Paquets présents sur tous les postes, quels que soient l'OS et le profil.
+# Les noms réels sont résolus par distribution dans vars/<famille>.yml ;
+# cette liste contient les identifiants logiques du rôle.
+base_tools:
+  - curl
+  - wget
+  - unzip
+  - tree
+  - htop
+  - jq
+  - ripgrep
+  - fd
+  - bat
+  - vim
+
+# Paquets supplémentaires, alimentés par un profil (profiles/*.yml).
+base_extra_packages: []
+
+# Gestion de la localisation. Désactivable si le poste est déjà réglé.
+base_manage_timezone: true
+base_manage_locale: true
+
+# Durée de validité du cache de paquets, en secondes (apt uniquement).
+base_cache_valid_time: 3600

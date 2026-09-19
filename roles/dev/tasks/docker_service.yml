@@ -1,0 +1,16 @@
+---
+- name: Activer et démarrer le service Docker
+  become: true
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Ajouter l'utilisateur au groupe docker
+  become: true
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    groups: docker
+    append: true
+  when: dev_docker_group_member | bool
+  notify: Informer de la reconnexion nécessaire

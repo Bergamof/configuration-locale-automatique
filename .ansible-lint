@@ -1,0 +1,17 @@
+---
+profile: production
+
+exclude_paths:
+  - .git/
+  - .github/
+  - .venv/
+  - collections/
+
+# Les fichiers de profil sont des jeux de variables, pas des playbooks.
+kinds:
+  - vars: "profiles/*.yml"
+
+skip_list: []
+
+warn_list:
+  - experimental

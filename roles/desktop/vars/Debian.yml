@@ -1,0 +1,15 @@
+---
+desktop_app_packages:
+  firefox: firefox
+  vlc: vlc
+  keepassxc: keepassxc
+  gimp: gimp
+  thunderbird: thunderbird
+  terminal: gnome-terminal
+  vscode: code
+
+desktop_font_packages:
+  - fonts-firacode
+  - fonts-noto-color-emoji
+
+desktop_flatpak_package: flatpak

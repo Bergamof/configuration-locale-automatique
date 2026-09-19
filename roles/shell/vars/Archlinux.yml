@@ -1,0 +1,6 @@
+---
+shell_packages:
+  bash: bash
+  zsh: zsh
+
+shell_starship_package: starship

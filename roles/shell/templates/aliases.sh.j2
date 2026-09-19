@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Alias du poste — profil « {{ workstation_profile }} ».
+# Ne pas éditer : le fichier est regénéré par le rôle shell.
+
+{% for name, command in shell_aliases | dictsort %}
+alias {{ name }}='{{ command }}'
+{% endfor %}

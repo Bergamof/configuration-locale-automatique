@@ -1,0 +1,22 @@
+---
+# Génère une paire de clés si elle n'existe pas encore.
+# Une clé existante n'est jamais écrasée ni régénérée.
+ssh_generate_key: true
+ssh_key_type: ed25519
+ssh_key_path: "{{ workstation_home }}/.ssh/id_{{ ssh_key_type }}"
+ssh_key_comment: "{{ workstation_user }}@{{ ansible_hostname }} ({{ workstation_profile }})"
+
+# Options appliquées à toutes les connexions (bloc Host *).
+ssh_default_options:
+  AddKeysToAgent: "yes"
+  HashKnownHosts: "yes"
+  ServerAliveInterval: "60"
+  ServerAliveCountMax: "3"
+
+# Hôtes déclarés dans ~/.ssh/config.
+# Chaque entrée : {name, hostname, user, port (opt.), identity_file (opt.),
+# options (opt., dict)}.
+ssh_hosts: []
+
+# Clé publique ajoutée à ~/.ssh/authorized_keys (vide = aucune).
+ssh_authorized_key: "{{ vault_ssh_authorized_key | default('') }}"

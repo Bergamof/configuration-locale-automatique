@@ -1,0 +1,17 @@
+---
+- name: Générer la locale {{ workstation_locale }}
+  become: true
+  community.general.locale_gen:
+    name: "{{ workstation_locale }}"
+    state: present
+
+- name: Définir la locale système par défaut
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ base_locale_conf_path }}"
+    regexp: '^LANG='
+    line: "LANG={{ workstation_locale }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"

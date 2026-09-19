@@ -1,0 +1,6 @@
+---
+- name: Installer Docker Engine et le plugin compose
+  become: true
+  community.general.pacman:
+    name: "{{ dev_docker_packages }}"
+    state: present

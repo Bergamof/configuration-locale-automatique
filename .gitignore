@@ -1,0 +1,25 @@
+# Secrets : jamais versionnés en clair
+.vault_pass
+.vault_pass.txt
+*.vault
+inventory/group_vars/all/vault.yml
+
+# Dépendances Ansible installées localement
+collections/
+roles/external/
+.ansible/
+
+# Artefacts d'exécution
+*.retry
+*.log
+facts.d/
+
+# Environnements Python
+.venv/
+__pycache__/
+
+# Éditeurs / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store

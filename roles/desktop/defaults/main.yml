@@ -1,0 +1,18 @@
+---
+# Applications graphiques installées depuis les dépôts de la distribution.
+# Identifiants logiques résolus dans vars/<famille>.yml.
+desktop_apps:
+  - firefox
+
+# Applications installées via Flatpak (identifiants applicatifs complets).
+desktop_flatpak_apps: []
+
+# Active Flatpak et le dépôt Flathub dès qu'une application Flatpak
+# est demandée.
+desktop_enable_flatpak: true
+
+# Applications AUR (Arch/Manjaro uniquement).
+desktop_aur_apps: []
+
+# Polices installées sur tous les postes graphiques.
+desktop_install_fonts: true

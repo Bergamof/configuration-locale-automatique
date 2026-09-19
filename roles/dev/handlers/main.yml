@@ -1,0 +1,6 @@
+---
+- name: Informer de la reconnexion nécessaire
+  ansible.builtin.debug:
+    msg: >-
+      L'utilisateur {{ workstation_user }} a été ajouté au groupe docker.
+      Fermer puis rouvrir la session pour que l'appartenance prenne effet.

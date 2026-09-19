@@ -1,0 +1,42 @@
+---
+- name: Charger les variables propres à la distribution
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Vérifier que les applications demandées sont connues pour cette distribution
+  ansible.builtin.assert:
+    that:
+      - desktop_apps | difference(desktop_app_packages.keys() | list) | length == 0
+    fail_msg: >-
+      Applications sans paquet défini pour {{ ansible_os_family }} :
+      {{ desktop_apps | difference(desktop_app_packages.keys() | list) | join(', ') }}.
+      Compléter roles/desktop/vars/{{ ansible_os_family }}.yml.
+    quiet: true
+
+- name: Installer les applications graphiques
+  become: true
+  ansible.builtin.package:
+    name: "{{ desktop_apps | map('extract', desktop_app_packages) | list }}"
+    state: present
+  when: desktop_apps | length > 0
+
+- name: Installer les polices
+  become: true
+  ansible.builtin.package:
+    name: "{{ desktop_font_packages }}"
+    state: present
+  when: desktop_install_fonts | bool
+
+- name: Installer les applications Flatpak
+  ansible.builtin.include_tasks: flatpak.yml
+  when:
+    - desktop_enable_flatpak | bool
+    - desktop_flatpak_apps | length > 0
+
+- name: Installer les applications AUR
+  ansible.builtin.include_role:
+    name: aur
+  vars:
+    aur_packages: "{{ desktop_aur_apps }}"
+  when:
+    - ansible_os_family == 'Archlinux'
+    - desktop_aur_apps | length > 0

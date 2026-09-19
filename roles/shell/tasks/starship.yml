@@ -1,0 +1,27 @@
+---
+- name: Installer Starship depuis les dépôts de la distribution
+  become: true
+  ansible.builtin.package:
+    name: "{{ shell_starship_package }}"
+    state: present
+  when: shell_starship_package | length > 0
+
+- name: Installer Starship depuis l'archive officielle
+  when: shell_starship_package | length == 0
+  block:
+    - name: Vérifier si Starship est déjà installé
+      ansible.builtin.stat:
+        path: /usr/local/bin/starship
+      register: shell_starship_binary
+
+    - name: Télécharger et extraire Starship
+      become: true
+      ansible.builtin.unarchive:
+        src: >-
+          https://github.com/starship/starship/releases/download/v{{ shell_starship_version }}/starship-x86_64-unknown-linux-gnu.tar.gz
+        dest: /usr/local/bin
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+      when: not shell_starship_binary.stat.exists

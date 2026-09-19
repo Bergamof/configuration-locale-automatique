@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  role_name: ssh
+  author: Adrien Bouchardon
+  description: "Configuration du client SSH et des clés de l'utilisateur"
+  license: AGPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: ArchLinux
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - workstation
+    - configuration
+
+dependencies: []

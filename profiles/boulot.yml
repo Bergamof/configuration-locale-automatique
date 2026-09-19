@@ -1,0 +1,27 @@
+---
+# Profil « boulot » : poste professionnel, orienté développement.
+profile_roles:
+  - desktop
+  - dev
+
+workstation_full_name: "Adrien Bouchardon"
+workstation_email: "{{ vault_boulot_email | default('') }}"
+
+desktop_apps:
+  - firefox
+  - keepassxc
+
+desktop_flatpak_apps: []
+
+dev_languages:
+  - python
+  - node
+  - java
+dev_install_docker: true
+
+# Le poste pro pousse sur des dépôts qui exigent des commits signés.
+git_sign_commits: true
+
+# Répertoire de travail dans lequel l'identité pro est appliquée
+# (voir includeIf dans le rôle git).
+git_work_directory: "{{ workstation_home }}/work"

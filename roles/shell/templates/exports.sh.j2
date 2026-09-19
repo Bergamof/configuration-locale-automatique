@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# Variables d'environnement du poste — profil « {{ workstation_profile }} ».
+# Ne pas éditer : le fichier est regénéré par le rôle shell.
+
+{% for name, value in shell_exports | dictsort %}
+export {{ name }}='{{ value }}'
+{% endfor %}
+
+# ~/.local/bin en tête du PATH lorsqu'il existe.
+if [ -d "$HOME/.local/bin" ] && ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi

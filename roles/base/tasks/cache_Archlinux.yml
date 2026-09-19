@@ -1,0 +1,5 @@
+---
+- name: Mettre à jour la base de données pacman
+  become: true
+  community.general.pacman:
+    update_cache: true

@@ -1,0 +1,59 @@
+---
+- name: Charger les variables propres à la distribution
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Vérifier que l'identité git du profil est renseignée
+  ansible.builtin.assert:
+    that:
+      - workstation_full_name | length > 0
+      - workstation_email | length > 0
+    fail_msg: >-
+      Le profil « {{ workstation_profile }} » ne définit pas
+      workstation_full_name et workstation_email, nécessaires à la
+      configuration de git. Compléter profiles/{{ workstation_profile }}.yml
+      (ou le coffre Ansible Vault pour l'adresse de courriel).
+    quiet: true
+
+- name: Installer git et ses extensions
+  become: true
+  ansible.builtin.package:
+    name: "{{ git_packages }}"
+    state: present
+
+- name: Installer delta comme pager de diff
+  become: true
+  ansible.builtin.package:
+    name: "{{ git_delta_package }}"
+    state: present
+  when: git_install_delta | bool
+
+- name: Créer le répertoire de configuration de git
+  ansible.builtin.file:
+    path: "{{ workstation_home }}/.config/git"
+    state: directory
+    owner: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Déployer la configuration globale de git
+  ansible.builtin.template:
+    src: gitconfig.j2
+    dest: "{{ workstation_home }}/.gitconfig"
+    owner: "{{ workstation_user }}"
+    mode: "0644"
+    validate: "git config --file %s --list"
+
+- name: Déployer la liste des fichiers ignorés globalement
+  ansible.builtin.template:
+    src: gitignore_global.j2
+    dest: "{{ workstation_home }}/.config/git/ignore"
+    owner: "{{ workstation_user }}"
+    mode: "0644"
+
+- name: Déployer l'identité conditionnelle des dépôts professionnels
+  ansible.builtin.template:
+    src: gitconfig_work.j2
+    dest: "{{ workstation_home }}/.config/git/config-work"
+    owner: "{{ workstation_user }}"
+    mode: "0644"
+    validate: "git config --file %s --list"
+  when: git_work_directory | length > 0

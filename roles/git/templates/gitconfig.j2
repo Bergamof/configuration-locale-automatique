@@ -1,0 +1,68 @@
+; {{ ansible_managed }}
+; Profil « {{ workstation_profile }} » — fichier regénéré par le rôle git.
+
+[user]
+	name = {{ workstation_full_name }}
+	email = {{ workstation_email }}
+{% if git_sign_commits and git_signing_key | length > 0 %}
+	signingkey = {{ git_signing_key }}
+{% endif %}
+
+[init]
+	defaultBranch = {{ git_default_branch }}
+
+[core]
+	editor = {{ git_editor }}
+	excludesfile = {{ workstation_home }}/.config/git/ignore
+	autocrlf = input
+{% if git_install_delta %}
+	pager = delta
+{% endif %}
+
+[pull]
+{% if git_pull_strategy == 'rebase' %}
+	rebase = true
+{% elif git_pull_strategy == 'ff-only' %}
+	ff = only
+{% else %}
+	rebase = false
+{% endif %}
+
+[push]
+	default = simple
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[commit]
+	gpgsign = {{ git_sign_commits | ternary('true', 'false') }}
+
+[diff]
+	colorMoved = default
+
+[merge]
+	conflictstyle = zdiff3
+
+[rebase]
+	autosquash = true
+	autostash = true
+
+{% if git_install_delta %}
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	line-numbers = true
+{% endif %}
+
+[alias]
+{% for name, command in git_aliases | dictsort %}
+	{{ name }} = {{ command }}
+{% endfor %}
+
+{% if git_work_directory | length > 0 %}
+[includeIf "gitdir:{{ git_work_directory }}/"]
+	path = {{ workstation_home }}/.config/git/config-work
+{% endif %}

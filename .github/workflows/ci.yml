@@ -1,0 +1,73 @@
+---
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shell:
+    name: Scripts shell
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Analyser les scripts avec ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: --severity=style --shell=bash
+
+      - name: Vérifier le formatage avec shfmt
+        uses: luizm/action-sh-checker@master
+        env:
+          SHFMT_OPTS: --indent 2 --case-indent --diff
+        with:
+          sh_checker_shellcheck_disable: true
+          sh_checker_comment: false
+
+  ansible:
+    name: Playbooks et rôles Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer l'outillage de vérification
+        run: python -m pip install --upgrade pip ansible-core ansible-lint yamllint
+
+      - name: Installer les collections requises
+        run: ansible-galaxy collection install --requirements-file requirements.yml
+
+      - name: Vérifier la syntaxe YAML
+        run: yamllint --strict .
+
+      - name: Analyser les rôles et playbooks
+        run: ansible-lint
+
+      - name: Vérifier la syntaxe des playbooks pour chaque profil
+        run: |
+          for profile in profiles/*.yml; do
+            name="$(basename "${profile}" .yml)"
+            if [ "${name}" = "common" ]; then
+              continue
+            fi
+            echo "::group::Profil ${name}"
+            ansible-playbook site.yml --syntax-check \
+              --extra-vars "workstation_profile=${name}"
+            echo "::endgroup::"
+          done
