@@ -212,6 +212,15 @@ Limites connues du scénario :
 - Molecule installe les collections depuis `collections.yml`, jamais
   depuis `requirements.yml` (réservé aux rôles) : un fichier mal nommé
   passe en local si la collection est déjà là, et casse en CI.
+- Un `scenario.test_sequence` explicite **remplace** la séquence par
+  défaut : omettre `dependency` prive `molecule test` de l'installation
+  des collections, alors que `molecule create`/`converge`, qui gardent
+  leur séquence par défaut, continuent de fonctionner. Vérifier la
+  matrice affichée au lancement (`scenario test matrix: …`).
+- Le warning `Missing roles requirements file: requirements.yml` est
+  attendu : le scénario ne dépend d'aucun rôle externe. Les autres
+  warnings de Molecule, eux, méritent d'être lus — deux échecs CI
+  successifs y étaient annoncés.
 - Le job CI qui lance `ansible-lint` doit installer **aussi** les
   collections de test : le linter analyse `molecule/` et échoue sinon sur
   `couldn't resolve module/action 'community.docker.docker_container'`.

@@ -54,7 +54,10 @@ provisioner:
       host_vars: host_vars
 
 scenario:
+  # `dependency` installe collections.yml : l'omettre laisse le scénario
+  # sans community.docker, et `molecule test` échoue dès le premier destroy.
   test_sequence:
+    - dependency
     - destroy
     - create
     - converge
