@@ -1,7 +1,0 @@
----
-# Collections nécessaires aux tests uniquement (Molecule les installe
-# automatiquement). Les collections requises par le poste lui-même sont
-# déclarées dans le requirements.yml à la racine du projet.
-collections:
-  - name: community.docker
-    version: ">=3.10.2"

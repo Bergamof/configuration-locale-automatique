@@ -55,7 +55,7 @@ jobs:
       - name: Installer les collections requises
         run: |
           ansible-galaxy collection install --requirements-file requirements.yml
-          ansible-galaxy collection install --requirements-file molecule/default/requirements.yml
+          ansible-galaxy collection install --requirements-file molecule/default/collections.yml
 
       - name: Vérifier la syntaxe YAML
         run: yamllint --strict .

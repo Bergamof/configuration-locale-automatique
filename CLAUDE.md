@@ -168,8 +168,10 @@ Points de conception à connaître :
   `workstation_roles` et consorts seraient indéfinis).
 - Portée : `skip-tags: dev,desktop`. Docker dans Docker, Flatpak et les
   applications graphiques ne sont pas testables en conteneur.
-- `molecule/default/requirements.yml` ne contient que `community.docker`
+- `molecule/default/collections.yml` ne contient que `community.docker`
   (besoin des tests) ; les collections du poste restent à la racine.
+  Molecule attend **ce nom précis** pour les collections : un
+  `requirements.yml` dans le scénario n'y sert qu'aux rôles.
 
 Limites connues du scénario :
 
@@ -207,6 +209,12 @@ Limites connues du scénario :
   dépôt qui bouge entre deux exécutions rendrait sinon le test
   d'idempotence instable. Rafraîchir un index n'est pas un changement
   d'état du poste.
+- Molecule installe les collections depuis `collections.yml`, jamais
+  depuis `requirements.yml` (réservé aux rôles) : un fichier mal nommé
+  passe en local si la collection est déjà là, et casse en CI.
+- Le job CI qui lance `ansible-lint` doit installer **aussi** les
+  collections de test : le linter analyse `molecule/` et échoue sinon sur
+  `couldn't resolve module/action 'community.docker.docker_container'`.
 - Deux `# noqa` justifiés dans `molecule/default/verify.yml`
   (`command-instead-of-module` pour lire la config git effective,
   `command-instead-of-shell` pour `command -v`). Préférer un `noqa` ciblé
