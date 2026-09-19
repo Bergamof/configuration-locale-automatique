@@ -335,4 +335,3 @@ Limites connues du scénario :
   `cgroupns_mode: host`) : faisable, mais plus fragile en CI.
 - Le profil `boulot` exige `vault_boulot_email` : sans coffre, le rôle
   `git` s'arrête sur un `assert` explicite. Comportement voulu.
-- `firefox` sur Ubuntu est un paquet de transition vers le snap.
