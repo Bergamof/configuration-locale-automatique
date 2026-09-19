@@ -107,7 +107,8 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
   (traductions de paquets par distribution).
 - Idempotence obligatoire : pas de `command`/`shell` sans `creates` ou
   `changed_when`.
-- **Toujours `ansible_facts['os_family']`, jamais `ansible_facts['os_family']`** :
+- **Toujours `ansible_facts['os_family']`, jamais `ansible_` + le nom du
+  fait** :
   `inject_facts_as_vars = false` dans `ansible.cfg`, donc un fait de haut
   niveau est indéfini et échoue immédiatement. Les variables de connexion
   (`ansible_user`, `ansible_connection`, `ansible_python_interpreter`),
