@@ -1,0 +1,15 @@
+---
+# Connexion par l'API Docker : ni SSH ni clé à gérer.
+ansible_connection: community.docker.docker
+
+# Le playbook refuse de s'exécuter en root ; create.yml crée ce compte.
+ansible_user: testeur
+
+# Profil appliqué pendant le test.
+workstation_profile: perso
+
+# community.general.timezone s'appuie sur timedatectl (systemd) et, à défaut,
+# sur /etc/sysconfig/clock ou /etc/timezone — qu'Arch n'utilise pas. Un
+# conteneur sans systemd ne peut donc pas régler le fuseau, contrairement à
+# un vrai Manjaro. La tâche reste couverte par la plateforme Ubuntu.
+base_manage_timezone: false

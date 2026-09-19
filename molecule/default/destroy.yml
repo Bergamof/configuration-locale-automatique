@@ -1,0 +1,15 @@
+---
+- name: Supprimer les conteneurs de test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Arrêter et supprimer les conteneurs
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        state: absent
+        force_kill: true
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"

@@ -1,0 +1,53 @@
+---
+- name: Créer les conteneurs de test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    molecule_test_user: testeur
+
+  tasks:
+    - name: Démarrer les conteneurs
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        image: "{{ item.image }}"
+        command: sleep infinity
+        state: started
+        recreate: true
+        pull: missing
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Installer les paquets d'amorçage
+      community.docker.docker_container_exec:
+        container: "{{ item.name }}"
+        argv:
+          - /bin/sh
+          - -c
+          - "{{ item.bootstrap_command }}"
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+      changed_when: true
+
+    # Le playbook configure le compte courant et refuse de tourner en root :
+    # les tests ont donc besoin d'un utilisateur non privilégié, autorisé à
+    # escalader sans mot de passe.
+    - name: Créer l'utilisateur de test
+      community.docker.docker_container_exec:
+        container: "{{ item.name }}"
+        argv:
+          - /bin/sh
+          - -c
+          - >-
+            id -u {{ molecule_test_user }} >/dev/null 2>&1
+            || useradd --create-home --shell /bin/bash {{ molecule_test_user }};
+            echo '{{ molecule_test_user }} ALL=(ALL) NOPASSWD:ALL'
+            > /etc/sudoers.d/{{ molecule_test_user }};
+            chmod 0440 /etc/sudoers.d/{{ molecule_test_user }}
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+      changed_when: true

@@ -8,6 +8,13 @@
     name: "{{ ssh_client_package }}"
     state: present
 
+- name: Installer la dépendance de génération de clés
+  become: true
+  ansible.builtin.package:
+    name: "{{ ssh_crypto_package }}"
+    state: present
+  when: ssh_generate_key | bool
+
 - name: Créer le répertoire ~/.ssh
   ansible.builtin.file:
     path: "{{ workstation_home }}/.ssh"
