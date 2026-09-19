@@ -28,7 +28,7 @@ La première tâche charge les variables de la distribution :
 ```yaml
 ---
 - name: Charger les variables propres à la distribution
-  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
 ```
 
 Ensuite, valider les entrées avant d'agir — un message d'erreur explicite
@@ -40,9 +40,9 @@ vaut mieux qu'un échec au milieu de l'installation :
     that:
       - monrole_apps | difference(monrole_app_packages.keys() | list) | length == 0
     fail_msg: >-
-      Applications sans paquet défini pour {{ ansible_os_family }} :
+      Applications sans paquet défini pour {{ ansible_facts['os_family'] }} :
       {{ monrole_apps | difference(monrole_app_packages.keys() | list) | join(', ') }}.
-      Compléter roles/monrole/vars/{{ ansible_os_family }}.yml.
+      Compléter roles/monrole/vars/{{ ansible_facts['os_family'] }}.yml.
     quiet: true
 ```
 
@@ -61,8 +61,8 @@ Règles à respecter :
 - modules en FQCN (`ansible.builtin.package`, jamais `package`) ;
 - `become: true` sur la tâche qui en a besoin, jamais sur le play ;
 - pas de `command`/`shell` sans `creates` ou `changed_when` ;
-- pas de test sur `ansible_distribution` dans une tâche : les différences
-  vivent dans `vars/` ou dans un `tasks/<sujet>_{{ ansible_os_family }}.yml`
+- pas de test sur la distribution dans une tâche : les différences
+  vivent dans `vars/` ou dans un `tasks/<sujet>_{{ ansible_facts['os_family'] }}.yml`
   inclus par `ansible.builtin.include_tasks`.
 
 ## 3. Déclarer le rôle dans le playbook
@@ -125,7 +125,7 @@ installe l'assistant si besoin.
   vars:
     aur_packages: "{{ monrole_aur_packages }}"
   when:
-    - ansible_os_family == 'Archlinux'
+    - ansible_facts['os_family'] == 'Archlinux'
     - monrole_aur_packages | length > 0
 ```
 

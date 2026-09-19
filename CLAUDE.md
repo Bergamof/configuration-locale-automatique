@@ -77,9 +77,9 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
 
 ## 5. Gestion du multi-distribution
 
-- Jamais de test `ansible_distribution` dans une tâche : les différences
+- Jamais de test sur la distribution dans une tâche : les différences
   vivent dans `roles/<rôle>/vars/{Archlinux,Debian}.yml`, chargés par
-  `ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"` en
+  `ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"` en
   première tâche du rôle.
 - Les rôles manipulent des **identifiants logiques** (`fd`, `bat`,
   `python`…) traduits en noms de paquets par un dictionnaire de la
@@ -89,7 +89,7 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
 - `ansible.builtin.package` est utilisé partout ; `base` rafraîchit le
   cache une fois pour toutes (`cache_Debian.yml` / `cache_Archlinux.yml`).
 - L'AUR passe par le rôle `aur` (installe `paru`, puis `kewlfft.aur.aur`),
-  inclus uniquement si `ansible_os_family == 'Archlinux'` et si la liste
+  inclus uniquement si `ansible_facts['os_family'] == 'Archlinux'` et si la liste
   `*_aur_packages` du rôle appelant est non vide.
 
 ## 6. Conventions de code (impératives)
@@ -107,7 +107,7 @@ détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
   (traductions de paquets par distribution).
 - Idempotence obligatoire : pas de `command`/`shell` sans `creates` ou
   `changed_when`.
-- **Toujours `ansible_facts['os_family']`, jamais `ansible_os_family`** :
+- **Toujours `ansible_facts['os_family']`, jamais `ansible_facts['os_family']`** :
   `inject_facts_as_vars = false` dans `ansible.cfg`, donc un fait de haut
   niveau est indéfini et échoue immédiatement. Les variables de connexion
   (`ansible_user`, `ansible_connection`, `ansible_python_interpreter`),
