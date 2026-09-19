@@ -16,13 +16,14 @@
         upgrade: true
 
   rescue:
-    # Un paquet retiré des dépôts n'est plus mis à jour et fige les versions
-    # dont il dépend : il bloque alors toute mise à niveau. Le nommer évite à
-    # l'utilisateur d'avoir à le deviner dans la sortie de pacman.
-    - name: Relever les paquets installés absents des dépôts
-      ansible.builtin.command:
-        cmd: pacman --query --foreign
-      register: base_foreign_packages
+    # Un paquet retiré des dépôts n'est plus reconstruit et fige les versions
+    # qu'il exige : il bloque alors toute mise à niveau. Les nommer tous d'un
+    # coup évite à l'utilisateur de les découvrir un par un, `pacman -Syu`
+    # ne signalant que les conflits de la transaction en cours.
+    - name: Rechercher les paquets qui bloquent la mise à niveau
+      ansible.builtin.script:
+        cmd: paquets-bloquants.sh
+      register: base_blocking_packages
       changed_when: false
       failed_when: false
 
@@ -35,19 +36,23 @@
 
           Erreur pacman :
           {{ ansible_failed_result.stdout | default(ansible_failed_result.msg, true) }}
+          {% set bloquants = base_blocking_packages.stdout_lines | default([], true) %}
+          {% if bloquants %}
+          Ces paquets ne sont plus dans aucun dépôt et figent la version de
+          paquets qui, eux, doivent être mis à niveau :
 
-          Cause la plus fréquente, si l'erreur ressemble à « installing X (2.78-1)
-          breaks dependency 'X=2.77' required by Y » : le paquet Y a été retiré
-          des dépôts. Il ne sera plus jamais mis à jour et fige la version de X,
-          donc il bloque toute mise à niveau. Le retirer débloque la situation :
-          sudo pacman -Rs Y
+          {{ bloquants | join('\n') }}
 
-          Paquets installés introuvables dans les dépôts (dont les paquets AUR,
-          qui eux sont normaux ici) :
-          {{ base_foreign_packages.stdout_lines | default([], true) | join(', ') | default('aucun', true) }}
+          Ils bloqueront toute mise à niveau tant qu'ils seront installés.
+          Les retirer tous ensemble, et non un par un :
+          sudo pacman -Rs {{ bloquants | map('split', ' ') | map('first') | join(' ') }}
 
-          Autre cause possible : un miroir à moitié synchronisé. Rafraîchir la
-          liste des miroirs, puis forcer le téléchargement des bases de données :
+          Si pacman refuse parce qu'un autre paquet les réclame, vérifier ce
+          qui en dépend (pacman -Qi <paquet>) avant de forcer avec -Rdd.
+          {% else %}
+          Aucun paquet installé ne fige de version : la cause est ailleurs.
+          Piste la plus fréquente, un miroir à moitié synchronisé. Rafraîchir
+          la liste des miroirs puis forcer le téléchargement des bases :
           sudo pacman-mirrors --fasttrack && sudo pacman -Syyu
-
+          {% endif %}
           Une fois « sudo pacman -Syu » passé à la main, relancer ./bootstrap.sh.

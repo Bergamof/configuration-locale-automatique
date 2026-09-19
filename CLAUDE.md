@@ -4,7 +4,7 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (mises à jour partielles pacman)
+> Dernière mise à jour : 2026-09-19 (paquets bloquant la mise à niveau)
 
 ## 1. Objet du projet
 
@@ -265,9 +265,20 @@ Limites connues du scénario :
   niveau (constaté avec `lib32-audit` et `lib32-libcap`, absents des trois
   branches Manjaro comme d'Arch, qui figeaient `audit=4.1.3` et
   `libcap=2.77`). Le rôle `base` ne retire rien — ce serait destructeur —
-  mais son `rescue` liste `pacman --query --foreign` et explique quoi
-  retirer. Ne pas remplacer ce message par un contournement : installer
-  malgré tout ramènerait le conflit d'origine.
+  mais son `rescue` lance `roles/base/files/paquets-bloquants.sh`, qui
+  croise les paquets absents des dépôts avec la version que les dépôts
+  fournissent, et nomme **tous** les bloqueurs d'un coup. Les lister un par
+  un ne suffit pas : `pacman -Syu` ne signale que les conflits de la
+  transaction en cours, donc en retirer deux fait apparaître les suivants.
+  Ne pas remplacer ce message par un contournement : installer malgré tout
+  ramènerait le conflit d'origine.
+- `pacman --sync --print` **résout la transaction** avant d'afficher quoi que
+  ce soit : appelé pour lire une version pendant qu'un conflit existe, il
+  recrache le message de conflit sur sa sortie standard, qui se retrouve
+  dans le diagnostic. Lire une version en dépôt avec
+  `LC_ALL=C pacman --sync --info` (le `LC_ALL` fige les étiquettes, sinon
+  traduites). Défaut trouvé par le test de bout en bout du chemin d'erreur,
+  pas par le lint.
 - La mise à niveau est non interactive (`--noconfirm`) : les questions de
   pacman (remplacement d'un paquet, choix d'un fournisseur) prennent leur
   réponse par défaut. Documenté dans `defaults/main.yml`.
