@@ -31,4 +31,9 @@ base_cache_valid_time: 3600
 # un conflit de dépendances. Passer à false n'est cohérent que pour un
 # poste déjà à jour : la base de données pacman n'est alors pas
 # rafraîchie non plus.
+# À savoir : la mise à niveau est non interactive (--noconfirm), donc les
+# questions de pacman reçoivent leur réponse par défaut — remplacement d'un
+# paquet par un autre, choix d'un fournisseur. Sur un poste déjà en service
+# et fortement personnalisé, passer `sudo pacman -Syu` à la main avant
+# bootstrap.sh laisse le contrôle de ces réponses.
 base_system_upgrade: true

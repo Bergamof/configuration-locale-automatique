@@ -6,9 +6,48 @@
 # « installing libelf (0.196-1) breaks dependency 'libelf=0.194' required by
 # lib32-libelf ». D'où un `pacman -Syu` complet, et aucun rafraîchissement
 # seul : ne rien synchroniser est plus sûr que synchroniser à moitié.
-- name: Mettre à niveau le système et la base de données pacman
-  become: true
-  community.general.pacman:
-    update_cache: true
-    upgrade: true
+- name: Mettre le poste à niveau avant toute installation
   when: base_system_upgrade | bool
+  block:
+    - name: Mettre à niveau le système et la base de données pacman
+      become: true
+      community.general.pacman:
+        update_cache: true
+        upgrade: true
+
+  rescue:
+    # Un paquet retiré des dépôts n'est plus mis à jour et fige les versions
+    # dont il dépend : il bloque alors toute mise à niveau. Le nommer évite à
+    # l'utilisateur d'avoir à le deviner dans la sortie de pacman.
+    - name: Relever les paquets installés absents des dépôts
+      ansible.builtin.command:
+        cmd: pacman --query --foreign
+      register: base_foreign_packages
+      changed_when: false
+      failed_when: false
+
+    - name: Expliquer pourquoi la mise à niveau est indispensable
+      ansible.builtin.fail:
+        msg: |
+          La mise à niveau du système a échoué ; l'installation s'arrête ici.
+          Installer sur un système à moitié à jour échouerait de toute façon :
+          Arch et Manjaro ne prennent pas en charge les mises à jour partielles.
+
+          Erreur pacman :
+          {{ ansible_failed_result.stdout | default(ansible_failed_result.msg, true) }}
+
+          Cause la plus fréquente, si l'erreur ressemble à « installing X (2.78-1)
+          breaks dependency 'X=2.77' required by Y » : le paquet Y a été retiré
+          des dépôts. Il ne sera plus jamais mis à jour et fige la version de X,
+          donc il bloque toute mise à niveau. Le retirer débloque la situation :
+          sudo pacman -Rs Y
+
+          Paquets installés introuvables dans les dépôts (dont les paquets AUR,
+          qui eux sont normaux ici) :
+          {{ base_foreign_packages.stdout_lines | default([], true) | join(', ') | default('aucun', true) }}
+
+          Autre cause possible : un miroir à moitié synchronisé. Rafraîchir la
+          liste des miroirs, puis forcer le téléchargement des bases de données :
+          sudo pacman-mirrors --fasttrack && sudo pacman -Syyu
+
+          Une fois « sudo pacman -Syu » passé à la main, relancer ./bootstrap.sh.

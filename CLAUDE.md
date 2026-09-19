@@ -259,6 +259,18 @@ Limites connues du scénario :
   moitié. Même règle dans le `bootstrap_command` du scénario Molecule.
   apt, lui, n'a pas cette contrainte : côté Debian on garde le simple
   rafraîchissement du cache.
+- Un `pacman -Syu` peut échouer pour une raison qui n'appartient pas au
+  projet : **un paquet retiré des dépôts** reste installé, n'est plus mis à
+  jour et fige les versions dont il dépend, ce qui bloque toute mise à
+  niveau (constaté avec `lib32-audit` et `lib32-libcap`, absents des trois
+  branches Manjaro comme d'Arch, qui figeaient `audit=4.1.3` et
+  `libcap=2.77`). Le rôle `base` ne retire rien — ce serait destructeur —
+  mais son `rescue` liste `pacman --query --foreign` et explique quoi
+  retirer. Ne pas remplacer ce message par un contournement : installer
+  malgré tout ramènerait le conflit d'origine.
+- La mise à niveau est non interactive (`--noconfirm`) : les questions de
+  pacman (remplacement d'un paquet, choix d'un fournisseur) prennent leur
+  réponse par défaut. Documenté dans `defaults/main.yml`.
 - `sudo -n true` **ne dit pas** si Ansible pourra escalader : l'installation
   des prérequis laisse un jeton sudo valide dans le terminal, le test
   réussit à tort, puis le playbook échoue sur « sudo: il est nécessaire de
