@@ -50,8 +50,12 @@ jobs:
       - name: Installer l'outillage de vérification
         run: python -m pip install --upgrade pip ansible-core ansible-lint yamllint
 
+      # ansible-lint analyse aussi molecule/, qui utilise community.docker :
+      # sans cette collection, il ne résout pas les modules du scénario.
       - name: Installer les collections requises
-        run: ansible-galaxy collection install --requirements-file requirements.yml
+        run: |
+          ansible-galaxy collection install --requirements-file requirements.yml
+          ansible-galaxy collection install --requirements-file molecule/default/requirements.yml
 
       - name: Vérifier la syntaxe YAML
         run: yamllint --strict .
