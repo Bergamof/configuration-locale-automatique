@@ -4,7 +4,8 @@
 > Ce fichier résume l'architecture, les conventions et l'état d'avancement.
 > Il doit être mis à jour dès qu'une décision structurante change.
 >
-> Dernière mise à jour : 2026-09-19 (socle validé sur Manjaro et Ubuntu 24.04)
+> Dernière mise à jour : 2026-09-20 (applications graphiques communes,
+> après les alias shell additifs)
 
 ## 1. Objet du projet
 
@@ -74,6 +75,25 @@ dépasse — c'est ce qu'utilise `bootstrap.sh` pour le profil.
 Ajouter un profil = déposer un `profiles/<nom>.yml` ; `bootstrap.sh` le
 détecte automatiquement (`list_profiles` liste `profiles/*.yml` sauf
 `common`).
+
+**Variables additives (tronc commun + profil)** : une surcharge de
+`vars_files` *remplace* la valeur, ce qui oblige chaque profil à répéter le
+socle. Pour les collections où l'on veut cumuler, le tronc commun et le
+profil portent donc deux variables distinctes, fusionnées à l'usage :
+
+| Tronc commun (`profiles/common.yml`) | Profil | Fusion |
+| --- | --- | --- |
+| `shell_common_aliases` | `shell_profile_aliases` | `combine` dans le gabarit (le profil l'emporte à clé égale) |
+| `desktop_common_apps` | `desktop_apps` | `union` dans un `set_fact` du rôle |
+| `desktop_common_flatpak_apps` | `desktop_flatpak_apps` | idem |
+| `desktop_common_aur_apps` | `desktop_aur_apps` | idem |
+
+Le rôle `desktop` construit `desktop_effective_*` en première tâche après
+le chargement des variables de distribution ; tout le reste du rôle
+(y compris l'`assert` de traduction des paquets) travaille sur ces listes
+effectives, jamais sur les listes brutes. Étendre ce schéma à une nouvelle
+liste = ajouter les deux variables dans `defaults/main.yml`, l'union dans
+le `set_fact`, et la mention dans `profiles/common.yml`.
 
 ## 5. Gestion du multi-distribution
 

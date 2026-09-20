@@ -2,22 +2,28 @@
 - name: Charger les variables propres à la distribution
   ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
 
+- name: Construire les listes d'applications effectives
+  ansible.builtin.set_fact:
+    desktop_effective_apps: "{{ desktop_common_apps | union(desktop_apps) }}"
+    desktop_effective_flatpak_apps: "{{ desktop_common_flatpak_apps | union(desktop_flatpak_apps) }}"
+    desktop_effective_aur_apps: "{{ desktop_common_aur_apps | union(desktop_aur_apps) }}"
+
 - name: Vérifier que les applications demandées sont connues pour cette distribution
   ansible.builtin.assert:
     that:
-      - desktop_apps | difference(desktop_app_packages.keys() | list) | length == 0
+      - desktop_effective_apps | difference(desktop_app_packages.keys() | list) | length == 0
     fail_msg: >-
       Applications sans paquet défini pour {{ ansible_facts['os_family'] }} :
-      {{ desktop_apps | difference(desktop_app_packages.keys() | list) | join(', ') }}.
+      {{ desktop_effective_apps | difference(desktop_app_packages.keys() | list) | join(', ') }}.
       Compléter roles/desktop/vars/{{ ansible_facts['os_family'] }}.yml.
     quiet: true
 
 - name: Installer les applications graphiques
   become: true
   ansible.builtin.package:
-    name: "{{ desktop_apps | map('extract', desktop_app_packages) | list }}"
+    name: "{{ desktop_effective_apps | map('extract', desktop_app_packages) | list }}"
     state: present
-  when: desktop_apps | length > 0
+  when: desktop_effective_apps | length > 0
 
 - name: Installer les polices
   become: true
@@ -30,13 +36,13 @@
   ansible.builtin.include_tasks: flatpak.yml
   when:
     - desktop_enable_flatpak | bool
-    - desktop_flatpak_apps | length > 0
+    - desktop_effective_flatpak_apps | length > 0
 
 - name: Installer les applications AUR
   ansible.builtin.include_role:
     name: aur
   vars:
-    aur_packages: "{{ desktop_aur_apps }}"
+    aur_packages: "{{ desktop_effective_aur_apps }}"
   when:
     - ansible_facts['os_family'] == 'Archlinux'
-    - desktop_aur_apps | length > 0
+    - desktop_effective_aur_apps | length > 0

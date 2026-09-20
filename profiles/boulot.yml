@@ -7,9 +7,8 @@ profile_roles:
 workstation_full_name: "Adrien Bouchardon"
 workstation_email: "{{ vault_boulot_email | default('') }}"
 
-desktop_apps:
-  - firefox
-  - keepassxc
+# Rien de plus que le socle commun (firefox, keepassxc) côté applications.
+desktop_apps: []
 
 desktop_flatpak_apps: []
 

@@ -1,11 +1,25 @@
 ---
 # Applications graphiques installées depuis les dépôts de la distribution.
 # Identifiants logiques résolus dans vars/<famille>.yml.
-desktop_apps:
-  - firefox
+#
+# Les trois listes d'applications du rôle sont ADDITIVES : la liste
+# effectivement installée est l'union de `desktop_common_*`
+# (profiles/common.yml, tout poste graphique) et de `desktop_*`
+# (profiles/<profil>.yml). Pour ajouter une application à un seul profil,
+# compléter la liste du profil ; pour l'ajouter partout, celle du tronc
+# commun. Aucune des deux ne remplace l'autre.
+desktop_apps: []
+
+# Applications graphiques communes à tous les profils graphiques
+# (à définir dans profiles/common.yml).
+desktop_common_apps: []
 
 # Applications installées via Flatpak (identifiants applicatifs complets).
 desktop_flatpak_apps: []
+
+# Applications Flatpak communes à tous les profils graphiques
+# (à définir dans profiles/common.yml).
+desktop_common_flatpak_apps: []
 
 # Active Flatpak et le dépôt Flathub dès qu'une application Flatpak
 # est demandée.
@@ -13,6 +27,10 @@ desktop_enable_flatpak: true
 
 # Applications AUR (Arch/Manjaro uniquement).
 desktop_aur_apps: []
+
+# Applications AUR communes à tous les profils graphiques
+# (à définir dans profiles/common.yml).
+desktop_common_aur_apps: []
 
 # Polices installées sur tous les postes graphiques.
 desktop_install_fonts: true

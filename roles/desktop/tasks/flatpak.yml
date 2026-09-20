@@ -16,7 +16,7 @@
 - name: Installer les applications Flatpak demandées
   become: true
   community.general.flatpak:
-    name: "{{ desktop_flatpak_apps }}"
+    name: "{{ desktop_effective_flatpak_apps }}"
     remote: flathub
     method: system
     state: present
