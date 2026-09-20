@@ -7,11 +7,10 @@ profile_roles:
 workstation_full_name: "Adrien Bouchardon"
 workstation_email: "{{ vault_perso_email | default('adrien.bouchardon@gmail.com') }}"
 
-# Applications graphiques du poste perso.
+# Applications graphiques propres au poste perso : elles s'ajoutent au
+# socle commun de profiles/common.yml (firefox, keepassxc).
 desktop_apps:
-  - firefox
   - vlc
-  - keepassxc
 
 desktop_flatpak_apps:
   - com.spotify.Client

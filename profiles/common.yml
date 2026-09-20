@@ -12,3 +12,16 @@ base_extra_packages: []
 # Alias de commandes ajoutés à ceux du rôle shell sur tous les postes.
 # Un profil complète cette liste avec `shell_profile_aliases` (additif).
 shell_common_aliases: {}
+
+# Applications graphiques installées sur tout poste dont le profil retient
+# le rôle `desktop` (le rôle n'est pas dans common_roles : un profil sans
+# environnement graphique ignore ces listes). Un profil les complète avec
+# `desktop_apps`, `desktop_flatpak_apps` et `desktop_aur_apps` : les deux
+# niveaux s'additionnent, aucun ne remplace l'autre.
+desktop_common_apps:
+  - firefox
+  - keepassxc
+
+desktop_common_flatpak_apps: []
+
+desktop_common_aur_apps: []

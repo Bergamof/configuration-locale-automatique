@@ -82,7 +82,6 @@ langages, identité git. Les variables disponibles sont documentées dans
 ```yaml
 # profiles/perso.yml
 desktop_apps:
-  - firefox
   - vlc
   - gimp        # ajout
 dev_languages:
@@ -107,6 +106,33 @@ shell_common_aliases:
 shell_profile_aliases:
   k: "kubectl"
 ```
+
+### Applications graphiques communes
+
+Les trois listes du rôle `desktop` sont **additives** : ce qui est installé
+est l'union du socle commun (`profiles/common.yml`) et de l'ajout du profil
+(`profiles/<profil>.yml`). Un doublon entre les deux niveaux est sans effet,
+l'union dédoublonne.
+
+| Socle commun | Ajout par profil |
+| --- | --- |
+| `desktop_common_apps` | `desktop_apps` |
+| `desktop_common_flatpak_apps` | `desktop_flatpak_apps` |
+| `desktop_common_aur_apps` | `desktop_aur_apps` |
+
+```yaml
+# profiles/common.yml — sur tout poste graphique
+desktop_common_apps:
+  - firefox
+  - keepassxc
+
+# profiles/perso.yml — en plus du socle
+desktop_apps:
+  - vlc
+```
+
+Le rôle `desktop` ne fait pas partie de `common_roles` : un profil qui ne le
+retient pas dans `profile_roles` n'installe rien, socle commun compris.
 
 ### Ajouter un profil
 
@@ -141,7 +167,8 @@ desktop_app_packages:
   inkscape: inkscape
 ```
 
-puis la référencer dans un profil (`desktop_apps: [..., inkscape]`).
+puis la référencer dans un profil (`desktop_apps: [..., inkscape]`) ou
+dans le socle commun (`desktop_common_apps`).
 
 ## Secrets (Ansible Vault)
 
