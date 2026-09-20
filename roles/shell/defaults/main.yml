@@ -12,8 +12,14 @@ shell_install_starship: true
 # Version installée quand la distribution ne fournit pas de paquet Starship.
 shell_starship_version: "1.23.0"
 
-# Alias déployés dans ~/.config/shell/aliases.sh.
+# Alias de base, déployés dans ~/.config/shell/aliases.sh.
 # Clé = alias, valeur = commande.
+# Les alias effectivement déployés sont fusionnés dans cet ordre, le dernier
+# l'emportant en cas de clé identique : shell_aliases, puis
+# shell_common_aliases (profiles/common.yml), puis shell_profile_aliases
+# (profiles/<profil>.yml). Pour AJOUTER un alias, utiliser l'une des deux
+# dernières variables plutôt que de redéfinir shell_aliases (qui serait
+# remplacée en bloc).
 shell_aliases:
   ll: "ls -alFh"
   la: "ls -A"
@@ -23,6 +29,12 @@ shell_aliases:
   gl: "git log --oneline --graph --decorate -20"
   gd: "git diff"
   ff: "fd"
+
+# Alias propres au tronc commun (à définir dans profiles/common.yml).
+shell_common_aliases: {}
+
+# Alias propres au profil (à définir dans profiles/<profil>.yml).
+shell_profile_aliases: {}
 
 # Variables d'environnement déployées dans ~/.config/shell/exports.sh.
 shell_exports:

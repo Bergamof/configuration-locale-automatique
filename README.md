@@ -90,6 +90,24 @@ dev_languages:
   - rust        # ajout
 ```
 
+### Alias de commandes
+
+Les alias du rôle `shell` (`shell_aliases`) sont complétés de façon
+**additive** par `shell_common_aliases` (`profiles/common.yml`, tous les
+postes) puis `shell_profile_aliases` (`profiles/<profil>.yml`). En cas de
+clé identique, le profil l'emporte sur le tronc commun, qui l'emporte sur
+le rôle.
+
+```yaml
+# profiles/common.yml
+shell_common_aliases:
+  gp: "git pull --ff-only"
+
+# profiles/boulot.yml
+shell_profile_aliases:
+  k: "kubectl"
+```
+
 ### Ajouter un profil
 
 Créer `profiles/<nom>.yml` avec au minimum `profile_roles`. Le script le
