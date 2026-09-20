@@ -8,3 +8,7 @@ common_roles:
 
 # Paquets ajoutés au socle sur tous les postes, quel que soit le profil.
 base_extra_packages: []
+
+# Alias de commandes ajoutés à ceux du rôle shell sur tous les postes.
+# Un profil complète cette liste avec `shell_profile_aliases` (additif).
+shell_common_aliases: {}

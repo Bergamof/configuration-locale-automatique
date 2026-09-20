@@ -2,6 +2,6 @@
 # Alias du poste — profil « {{ workstation_profile }} ».
 # Ne pas éditer : le fichier est regénéré par le rôle shell.
 
-{% for name, command in shell_aliases | dictsort %}
+{% for name, command in shell_aliases | combine(shell_common_aliases, shell_profile_aliases) | dictsort %}
 alias {{ name }}='{{ command }}'
 {% endfor %}
